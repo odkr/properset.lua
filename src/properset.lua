@@ -741,7 +741,7 @@ end
 function are_disjoint (sets)
     for i = 1, #sets do
         for j = i + 1, #sets do
-            local s = intersection{a[i], a[j]}
+            local s = intersection{sets[i], sets[j]}
             if #s ~= 0 then return false end
         end
     end
@@ -814,8 +814,10 @@ function intersection (sets)
     elseif #sets > 1 then
         local res = sets[1]:copy()
         for i = 2, #sets do
-            for v in res:members() do
-                if not sets[i]:has_member(v) then res:delete{v} end
+            for j = #res._members, 1, -1 do
+                if not sets[i]:has_member(res._members[j]) then
+                    table.remove(res._members, j)
+                end
             end
             if res:is_empty() then break end
         end
