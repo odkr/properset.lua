@@ -156,6 +156,46 @@ function Set:__pairs ()
 end
 
 
+--- Maps a function of all values of the set onto another set.
+--
+-- @tparam function func A function to be applied to each member.
+--
+-- @treturn Set The results of applying `func` to the members of the set.
+--
+-- @usage
+--      > a = Set:new{1, 2, 3}
+--      > a:map(function(i) return i + 1 end)
+--      {2, 3, 4}
+function Set:map (func)
+    local res = Set:new()
+    for v in self:members() do
+         res:add{func(v)}
+    end
+    return res
+end
+
+
+--- Filters members of a set out.
+--
+-- @tparam function func A function that defines which members will be selected.
+--
+-- @treturn Set The filtered set.
+--
+-- @usage
+--      > a = Set:new{1, 2, 3}
+--      > a:filter(function(i) return i % 2 == 0 end)
+--      {2}
+function Set:filter (func)
+    local res = Set:new()
+    for v in self:members() do
+         if func(v) then
+             res:add{v}
+         end
+    end
+    return res
+end
+
+
 -- Manipulating sets
 -- -----------------
 
@@ -413,7 +453,7 @@ end
 -- Set arithmetics
 -- ---------------
 
---- The complement of the sets and another set.
+--- The complement of the set and another set.
 --
 -- `complement(a, b)` and `a - b` are equivalent.
 --

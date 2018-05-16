@@ -60,6 +60,20 @@ function TestIterationPairs()
     lu.assertItemsEquals(b, {1, 2, 3})
 end
 
+function TestMap()
+    local a = set{1, 2, 3}
+    local b = set{2, 3, 4}
+    local add = function(i) return i + 1 end
+    lu.assertEquals(a:map(add), b)
+end
+
+function TestFilter()
+    local a = set{1, 2, 3, 4}
+    local b = set{2, 4}
+    local even = function(i) return i % 2 == 0 end
+    lu.assertEquals(a:filter(even), b)
+end
+
 function TestAdd()
     local a = set{1, 2, 3}
     a:add{4, 5}
