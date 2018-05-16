@@ -26,12 +26,20 @@ local ipairs = ipairs
 local pairs = pairs
 local getmetatable = getmetatable
 local setmetatable = setmetatable
+local string = string
 local tostring = tostring
 local type = type
 
 local print = print
 
 local _ENV = properset
+
+
+-- Constants
+-- =========
+
+-- Format for error messages if a value isn't a set.
+local NOTASETERR = "'%s' is not a set."
 
 
 -- Sets as types
@@ -253,6 +261,9 @@ end
 --
 -- @treturn boolean Whether the set is a subset of another set.
 --
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
+--
 -- @usage
 --      > a = Set:new{1, 2}
 --      > b = Set:new{1}
@@ -262,6 +273,7 @@ end
 --      > c <= a
 --      false
 function Set:__le (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     for i in self:members() do
         if not other:has_member(i) then return false end
     end
@@ -275,6 +287,9 @@ end
 --
 -- @treturn boolean Whether the set is a superset of another set.
 --
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
+--
 -- @usage
 --      > a = Set:new{1, 2}
 --      > b = Set:new{1}
@@ -284,6 +299,7 @@ end
 --      > a >= c
 --      false
 function Set:__ge (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     return other <= self
 end
 
@@ -293,6 +309,9 @@ end
 -- @tparam Set other The other set.
 --
 -- @treturn boolean Whether the set is a strict subset of another set.
+--
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
 --
 -- @usage
 --      > a = Set:new{1, 2}
@@ -307,6 +326,7 @@ end
 --      > c < a
 --      false
 function Set:__lt (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     if #self < #other then return self <= other end
     return false
 end
@@ -317,6 +337,9 @@ end
 -- @tparam Set other The other set.
 --
 -- @treturn boolean Whether the set is a strict superset of another set.
+--
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
 --
 -- @usage
 --      > a = Set:new{1, 2}
@@ -331,6 +354,7 @@ end
 --      > a > c
 --      false
 function Set:__gt (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     return other < self
 end
 
@@ -340,6 +364,9 @@ end
 -- @tparam Set other The other set.
 --
 -- @treturn boolean Whether the set is equal to another set.
+--
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
 --
 -- @usage
 --      > a = Set:new{1}
@@ -354,6 +381,7 @@ end
 --      > a ~= c
 --      true
 function Set:__eq (other)
+    if not is_set(other) then return false end
     if #self == #other then return self <= other end
     return false
 end
@@ -365,6 +393,9 @@ end
 --
 -- @treturn boolean Whether the two sets are disjoint.
 --
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
+--
 -- @usage
 --      > a = Set:new{1}
 --      > b = Set:new{1, 2}
@@ -374,6 +405,7 @@ end
 --      > a:is_disjoint_from(c)
 --      true
 function Set:is_disjoint_from (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     return are_disjoint{self, other}
 end
 
@@ -389,12 +421,16 @@ end
 --
 -- @treturn Set The complement of the two sets.
 --
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
+--
 -- @usage
 --      > a = Set:new{1, 2}
 --      > b = Set:new{2}
 --      > a - b
 --      {1}
 function Set:__sub (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     return complement(self, other)
 end
 
@@ -407,12 +443,16 @@ end
 --
 -- @treturn Set The union of the two sets.
 --
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
+--
 -- @usage
 --      > a = Set:new{1}
 --      > b = Set:new{2}
 --      > a + b
 --      {1, 2}
 function Set:__add (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     return union{self, other}
 end
 
@@ -422,6 +462,9 @@ end
 -- @tparam Set other Another set to intersect the set with.
 --
 -- @treturn Set The intersection of the two sets.
+--
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
 --
 -- @usage
 --      > a = Set:new{1}
@@ -434,6 +477,7 @@ end
 --      > a:intersection(c)
 --      {}
 function Set:intersection (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     return intersection {self, other}
 end
 
@@ -444,17 +488,27 @@ end
 --
 -- @treturn Set The symmetric difference of the two sets.
 --
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
+--
 -- @usage
 --      > a = Set:new{1, 2}
 --      > b = Set:new{1, 3}
 --      > a:difference(b)
 --      {2, 3}
 function Set:difference (other)
+    assert_set(other, string.format(NOTASETERR, 'other'))
     return difference {self, other}
 end
 
 
 --- The set's power set.
+--
+-- Note: Calculating the power set of a set with five members
+-- takes about 0.01s, calculating the power for n = 6 takes about
+-- 0.1s, n = 7 takes about 0.5s, n = 8 about 5s, n = 9 about 50s, ...
+-- (all on a modern-ish Laptop CPU, without LuaJIT). So be careful
+-- what you're trying to calculate.
 --
 -- @treturn Set(Set,...) The set's power set.
 --
@@ -938,6 +992,17 @@ function is_set (obj)
         return true
     end
     return false
+end
+
+
+--- Asserts that an object is a set.
+--
+-- @param obj An object.
+-- @param[opt] errmsg An error message.
+--
+-- @raise An error if `obj` isn't a `Set` (or implements the Set protocol).
+function assert_set (obj, errmsg)
+    assert(is_set(obj), errmsg)
 end
 
 
