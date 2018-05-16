@@ -72,7 +72,7 @@ Set = {}
 --      > Set:new{1, 2, 3}
 --      {1, 2, 3}
 function Set:new (members)
-    self = self or {} 
+    self = self or Set 
     local set = {_members={}}
     setmetatable(set, self)
     self.__index = self
