@@ -11,7 +11,7 @@
 -- @author Odin Kroeger
 -- @copyright 2018 Odin Kroeger
 -- @license MIT
--- @release 0.0
+-- @release 0.1-0
 
 -- Boilerplate
 -- ===========
@@ -39,7 +39,7 @@ local _ENV = properset
 -- =========
 
 -- Format for error messages if a value isn't a set.
-local NOTASETERR = "'%s' is not a set."
+local NOTASETERR = "%s: is not a set."
 
 
 -- Sets as types
@@ -273,7 +273,7 @@ end
 --      > c <= a
 --      false
 function Set:__le (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     for i in self:members() do
         if not other:has_member(i) then return false end
     end
@@ -299,7 +299,7 @@ end
 --      > a >= c
 --      false
 function Set:__ge (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     return other <= self
 end
 
@@ -326,7 +326,7 @@ end
 --      > c < a
 --      false
 function Set:__lt (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     if #self < #other then return self <= other end
     return false
 end
@@ -354,7 +354,7 @@ end
 --      > a > c
 --      false
 function Set:__gt (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     return other < self
 end
 
@@ -405,7 +405,7 @@ end
 --      > a:is_disjoint_from(c)
 --      true
 function Set:is_disjoint_from (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     return are_disjoint{self, other}
 end
 
@@ -430,7 +430,7 @@ end
 --      > a - b
 --      {1}
 function Set:__sub (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     return complement(self, other)
 end
 
@@ -452,7 +452,7 @@ end
 --      > a + b
 --      {1, 2}
 function Set:__add (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     return union{self, other}
 end
 
@@ -477,7 +477,7 @@ end
 --      > a:intersection(c)
 --      {}
 function Set:intersection (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     return intersection {self, other}
 end
 
@@ -497,7 +497,7 @@ end
 --      > a:difference(b)
 --      {2, 3}
 function Set:difference (other)
-    assert_set(other, string.format(NOTASETERR, 'other'))
+    assert_set(other, string.format(NOTASETERR, "'other'"))
     return difference {self, other}
 end
 
@@ -1002,6 +1002,7 @@ end
 --
 -- @raise An error if `obj` isn't a `Set` (or implements the Set protocol).
 function assert_set (obj, errmsg)
+    errmsg = errmsg or 'expected a Set, but got a ' .. type(obj)
     assert(is_set(obj), errmsg)
 end
 
@@ -1086,7 +1087,7 @@ function copy(obj, seen)
     seen = seen or {}
     seen[obj] = res
     for k, v in next, obj, nil do
-        res[copy(k, deep, seen)] = copy(v, deep, seen)
+        res[copy(k, seen)] = copy(v, seen)
     end
     return res
 end
