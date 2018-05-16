@@ -174,6 +174,21 @@ end
 
 --- Deletes elements from a set.
 --
+-- Don't delete members of a set while you're iterating over it.
+--
+-- That is, don't try something like this:
+--
+--      a = Set:new{1, 2}
+--      b = Set:new{2, 4}
+--      for v in a:members() do
+--          for w in b:members() do
+--              if v == w then
+--                  a:delete{v}
+--              end
+--          end
+--      end
+--
+--
 -- @tparam table members A list of elements to be deleted.
 --
 -- @usage
@@ -474,7 +489,7 @@ end
 
 --- All members of rank *n*.
 --
--- `a:flatten()` and `a:at_rankn(0, true)` are equivalent.
+-- `a:flatten()` and `a:of_rankn(0, true)` are equivalent.
 --
 -- @tparam number n The rank.
 -- @tparam boolean desc Whether to descend into members that are sets, too.
@@ -485,31 +500,31 @@ end
 --      > a = Set:new{1, Set:new{2, Set:new{3, 4}, Set:new{5}}, Set:new{6}}
 --      > a
 --      {1, {2, {3, 4}, {5}}, {6}}
---      > a:at_rankn(0)
+--      > a:of_rankn(0)
 --      {1}
---      > a:at_rankn(1)
+--      > a:of_rankn(1)
 --      {{6}}
---      > a:at_rankn(2)
+--      > a:of_rankn(2)
 --      {{2, {3, 4}, {5}}}
---      > a:at_rankn(3)
+--      > a:of_rankn(3)
 --      {}
---      > a:at_rankn(0, true)
+--      > a:of_rankn(0, true)
 --      {1, 2, 3, 4, 5, 6}
---      > a:at_rankn(1, true)
+--      > a:of_rankn(1, true)
 --      {{3, 4}, {5}, {6}}
---      > a:at_rankn(2, true)
+--      > a:of_rankn(2, true)
 --      {{2, {3, 4}, {5}}}
---      > a:at_rankn(3, true)
+--      > a:of_rankn(3, true)
 --      {}
 --
 -- @see rank
-function Set:at_rankn (n, desc)
+function Set:of_rankn (n, desc)
     if desc == nil then desc = false end
     if n == 0 and desc then return self:flatten() end
     local res = Set:new()
     for v in self:members() do
         if rank(v) == n then res:add{v} end
-        if desc and is_set(v) then res = res + v:at_rankn(n, desc) end
+        if desc and is_set(v) then res = res + v:of_rankn(n, desc) end
     end
     return res
 end
@@ -962,6 +977,23 @@ function rank (obj)
 end
 
 
+--- Shorthand for creating sets.
+--
+-- Typing `Set:new{}` becomes tiresome quickly.
+-- Hence this shorthand.
+--
+-- @tparam[opt] table members Objects.
+--
+-- @treturn Set A set, populated with `members`, if any were given.
+--
+-- @usage
+--      > set = betterset.set
+--      > a = set{1, 2, 3}
+function set (members)
+    return Set:new(members)
+end
+
+
 --- Copies a table recursively.
 --
 -- Handles metatables, recursive structures, tables as keys, metatables,
@@ -999,7 +1031,7 @@ end
 -- @section constants
 
 --- The empty set.
--- @field empty The empty set (`Set:new{}`).
-empty = Set:new()
+-- @field emptyset The empty set (`Set:new{}`).
+emptyset = Set:new()
 
 return properset
