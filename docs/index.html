@@ -164,7 +164,7 @@
 	<td class="summary">The set's rank.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:at_rankn">Set:at_rankn (n, desc)</a></td>
+	<td class="name" nowrap><a href="#Set:of_rankn">Set:of_rankn (n, desc)</a></td>
 	<td class="summary">All members of rank <em>n</em>.</td>
 	</tr>
 	<tr>
@@ -237,12 +237,20 @@
 <h2><a href="#Utility_functions">Utility functions </a></h2>
 <table class="function_list">
 	<tr>
+	<td class="name" nowrap><a href="#is_in">is_in (obj, set)</a></td>
+	<td class="summary">Tests whether an object is a member of the given set.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#is_set">is_set (obj)</a></td>
 	<td class="summary">Tests whether an object behaves Set-ish.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#rank">rank (obj)</a></td>
 	<td class="summary">Calculates the rank of an object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#set">set ([members])</a></td>
+	<td class="summary">Shorthand for creating sets.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#copy">copy (obj)</a></td>
@@ -455,7 +463,26 @@
     <strong>Set:delete (members)</strong>
     </dt>
     <dd>
-    Deletes elements from a set.
+
+<p>Deletes elements from a set. </p>
+
+<p> Don't delete members of a set while you're iterating over it.</p>
+
+<p> That is, don't try something like this:</p>
+
+<pre><code>  a = Set:new{1, 2}
+  b = Set:new{2, 4}
+  for v in a:members() do
+      for w in b:members() do
+          if v == w then
+              a:delete{v}
+          end
+      end
+  end
+</code></pre>
+
+
+
 
 
     <h3>Parameters:</h3>
@@ -971,13 +998,13 @@
 
 </dd>
     <dt>
-    <a name = "Set:at_rankn"></a>
-    <strong>Set:at_rankn (n, desc)</strong>
+    <a name = "Set:of_rankn"></a>
+    <strong>Set:of_rankn (n, desc)</strong>
     </dt>
     <dd>
     All members of rank <em>n</em>. </p>
 
-<p> <code>a:flatten()</code> and <code>a:at_rankn(0, true)</code> are equivalent.
+<p> <code>a:flatten()</code> and <code>a:of_rankn(0, true)</code> are equivalent.
 
 
     <h3>Parameters:</h3>
@@ -1010,21 +1037,21 @@
         <pre class="example">&gt; a = Set:new{<span class="number">1</span>, Set:new{<span class="number">2</span>, Set:new{<span class="number">3</span>, <span class="number">4</span>}, Set:new{<span class="number">5</span>}}, Set:new{<span class="number">6</span>}}
 &gt; a
 {<span class="number">1</span>, {<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}, {<span class="number">6</span>}}
-&gt; a:at_rankn(<span class="number">0</span>)
+&gt; a:of_rankn(<span class="number">0</span>)
 {<span class="number">1</span>}
-&gt; a:at_rankn(<span class="number">1</span>)
+&gt; a:of_rankn(<span class="number">1</span>)
 {{<span class="number">6</span>}}
-&gt; a:at_rankn(<span class="number">2</span>)
+&gt; a:of_rankn(<span class="number">2</span>)
 {{<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}}
-&gt; a:at_rankn(<span class="number">3</span>)
+&gt; a:of_rankn(<span class="number">3</span>)
 {}
-&gt; a:at_rankn(<span class="number">0</span>, <span class="keyword">true</span>)
+&gt; a:of_rankn(<span class="number">0</span>, <span class="keyword">true</span>)
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>}
-&gt; a:at_rankn(<span class="number">1</span>, <span class="keyword">true</span>)
+&gt; a:of_rankn(<span class="number">1</span>, <span class="keyword">true</span>)
 {{<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}, {<span class="number">6</span>}}
-&gt; a:at_rankn(<span class="number">2</span>, <span class="keyword">true</span>)
+&gt; a:of_rankn(<span class="number">2</span>, <span class="keyword">true</span>)
 {{<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}}
-&gt; a:at_rankn(<span class="number">3</span>, <span class="keyword">true</span>)
+&gt; a:of_rankn(<span class="number">3</span>, <span class="keyword">true</span>)
 {}</pre>
     </ul>
 
@@ -1595,6 +1622,36 @@
 
     <dl class="function">
     <dt>
+    <a name = "is_in"></a>
+    <strong>is_in (obj, set)</strong>
+    </dt>
+    <dd>
+    Tests whether an object is a member of the given set.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">obj</span>
+         The object.
+        </li>
+        <li><span class="parameter">set</span>
+            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+         The set.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+        Whether <code>obj</code> is a member of <a href="index.html#set">set</a>.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
     <a name = "is_set"></a>
     <strong>is_set (obj)</strong>
     </dt>
@@ -1675,6 +1732,42 @@
 
 </dd>
     <dt>
+    <a name = "set"></a>
+    <strong>set ([members])</strong>
+    </dt>
+    <dd>
+    Shorthand for creating sets. </p>
+
+<p> Typing <code>Set:new{}</code> becomes tiresome quickly.
+ Hence this shorthand.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">members</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.6">table</a></span>
+         Objects.
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        A set, populated with <a href="index.html#Set:members">members</a>, if any were given.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; set = betterset.set
+&gt; a = set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}</pre>
+    </ul>
+
+</dd>
+    <dt>
     <a name = "copy"></a>
     <strong>copy (obj)</strong>
     </dt>
@@ -1741,7 +1834,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-05-16 18:03:14 </i>
+<i style="float:right;">Last updated 2018-05-16 19:59:07 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
