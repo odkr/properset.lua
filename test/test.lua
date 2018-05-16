@@ -238,6 +238,120 @@ function TestSorted()
     lu.assertItemsEquals(a:sorted(), {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 end
 
+function TestConcatenate()
+    local a = set{1, 2, 3, 4}
+    lu.assertEquals(a:concat(), '1234')
+    lu.assertEquals(a:concat(', '), '1, 2, 3, 4')
+end
 
+function TestUnpack()
+    local a = set{1, 2, 3, 4}
+    local x, y, z = a:unpack()
+    lu.assertEquals(x, 1)
+    lu.assertEquals(y, 2)
+    lu.assertEquals(z, 3)
+end
+
+function TestSetCopy()
+    local a = set{1, 2, 3, 4, 5}
+    local b = a:power()
+    local c = b:copy()
+    lu.assertEquals(b, c)
+    b:add{1}
+    lu.assertNotEquals(b, c)
+end
+
+function TestNDisjoint()
+    local a = set{1}
+    local b = set{1, 2}
+    local c = set{2}
+    local d = set{3}
+    lu.assertFalse(properset.are_disjoint{a, b, c})
+    lu.assertTrue(properset.are_disjoint{a, c, d})
+end
+
+function TestNUnion()
+    local a = set{1}
+    local b = set{2}
+    local c = set{3}
+    local d = properset.union{a, b, c}
+    lu.assertEquals(d, set{1, 2, 3})
+end
+
+function TestNIntersection()
+    local a = set{1}
+    local b = set{1, 2}
+    local c = set{2}
+    local d = set{1, 3}
+    lu.assertEquals(properset.intersection{a, b, c}, emptyset)
+    lu.assertEquals(properset.intersection{a, b, d}, set{1})
+end
+
+function TestNDifference()
+    local a = set{1, 2}
+    local b = set{1, 3}
+    local c = set{1, 2, 3, 4}
+    lu.assertEquals(properset.difference{a, b, c}, set{1, 4})
+end
+
+function TestIPairIterator()
+    local a = set{'a', 'b', 'c'}
+    local t = {}
+    for i, v in properset.nth_member, a, 0 do t[i] = v end
+    lu.assertItemsEquals(t, {'a', 'b', 'c'})
+end
+
+function TestPairIterator()
+    local a = set{'a', 'b', 'c'}
+    local t = {}
+    for k, v in properset.next_member, a, nil do table.insert(t, v) end
+    lu.assertItemsEquals(t, {'a', 'b', 'c'})
+end
+
+function TestIsSet()
+    local a = set{1}
+    lu.assertTrue(properset.is_set(a))
+    lu.assertFalse(properset.is_set(0))
+end
+
+function TestAssertSet()
+    local a = set{1}
+    lu.assertError(function() return properset.assert_set(0) end)
+    lu.assertTrue(pcall(function() return properset.assert_set(a) end))
+end
+
+function TestRankF()
+    local a = 0
+    local b = set{}
+    local c = set{b}
+    local d = set{c}
+    local e = set{d}
+    lu.assertEquals(properset.rank(a), 0)
+    lu.assertEquals(properset.rank(b), 1)
+    lu.assertEquals(properset.rank(c), 2)
+    lu.assertEquals(properset.rank(d), 3)
+    lu.assertEquals(properset.rank(e), 4)
+end
+
+function TestSetShorthand()
+    lu.assertEquals(Set:new{}, set{})
+    lu.assertEquals(set{}, emptyset)
+end
+
+function TestCopy()
+    local a = {a = 0, b = 1, c = 2, d = 3}
+    a.a = a
+    local b = properset.copy(a)
+    b.a = a
+    local c = {1, 2, {3, 4, {5, 6, {7, 8}}}}
+    local d = properset.copy(c)
+    lu.assertItemsEquals(b, a)
+    lu.assertEquals(c, d)
+end
+
+function TestEmptySet()
+    lu.assertEquals(#emptyset, 0)
+    lu.assertEquals(emptyset, set{})
+end
 
 os.exit(lu.LuaUnit.run())
