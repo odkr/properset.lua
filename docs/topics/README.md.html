@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>properset.lua</h1>
+
+
+
+
+<h2>Topics</h2>
+<ul class="">
+  <li><strong>README</strong></li>
+</ul>
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../index.html">properset</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+
+<h1>properset.lua</h1>
+
+<p>Allows to handles sets, including complex ones, -- properly.</p>
+
+<p><a href="../index.html#">properset</a> allows to properly handle sets that contain objects, tables,
+or other sets, sports a rich and sane interface, and is well-documented.</p>
+
+<h2>Comparison of Set Packages in Lua</h2>
+
+<p>I have found the following approaches</p>
+
+<ul>
+    <li>Roberto Ierusalimschy's example in
+    <a href="https://www.lua.org/pil/11.5.html"><em>Learning Lua</em></a></li>
+    <li>Wouter Scherphof's
+    <a href="https://luarocks.org/modules/luarocks/set">set</a></li>
+    <li>Ivan Baidakou's
+    <a href="https://luarocks.org/modules/basiliscos/orderedset">OrderedSet</a></li>
+    <li>Suggestions on the Lua User's
+    <a href="http://lua-users.org/wiki/SetOperations">Wiki</a></li>
+</ul>
+
+<p>Ierusalimschy proposes to emulate sets using tables:</p>
+
+
+<pre>
+<span class="keyword">function</span> Set (list)
+    <span class="keyword">local</span> set = {}
+    <span class="keyword">for</span> _, l <span class="keyword">in</span> <span class="global">ipairs</span>(list) <span class="keyword">do</span> set[l] = <span class="keyword">true</span> <span class="keyword">end</span>
+    <span class="keyword">return</span> set
+<span class="keyword">end</span>
+
+reserved = Set{<span class="string">"while"</span>, <span class="string">"end"</span>, <span class="string">"function"</span>, <span class="string">"local"</span>}
+</pre>
+
+<p>This approach is simple and fast, however it gets into trouble, when we want
+set whose members are complex, say, tables or objects:</p>
+
+
+<pre>
+&gt; <span class="keyword">function</span> Set (list)
+&gt;    <span class="keyword">local</span> set = {}
+&gt;    <span class="keyword">for</span> _, l <span class="keyword">in</span> <span class="global">ipairs</span>(list) <span class="keyword">do</span> set[l] = <span class="keyword">true</span> <span class="keyword">end</span>
+&gt;    <span class="keyword">return</span> set
+&gt; <span class="keyword">end</span>
+&gt;
+&gt; a = {<span class="number">1</span>}
+&gt; b = {<span class="number">1</span>}
+&gt; set = Set{a, b}
+&gt; <span class="keyword">for</span> k <span class="keyword">in</span> <span class="global">pairs</span>(set) <span class="keyword">do</span> <span class="global">print</span> (k) <span class="keyword">end</span>
+<span class="global">table</span>: <span class="number">0x7ffd87d04680</span>
+<span class="global">table</span>: <span class="number">0x7ffd87f01100</span>
+</pre>
+
+<p><code>a</code> and <code>b</code> are, for all intents and purposes, equal, so they should not
+<em>both</em> be members of the same set. However, because they are tables, all
+that matters when they are used as keys in other tables is their identity;
+and one and the same they are <em>not</em>.</p>
+
+<p>Note: Defining what it means for <code>a</code> and <code>b</code> to be equal makes no difference:</p>
+
+
+<pre>
+&gt; equality = {__eq = <span class="keyword">function</span>() <span class="keyword">return</span> <span class="keyword">true</span> <span class="keyword">end</span>}
+&gt; a = <span class="global">setmetatable</span>(a, equality)
+&gt; b = <span class="global">setmetatable</span>(b, equality)
+&gt; a == b
+<span class="keyword">true</span>
+&gt; set = Set{a, b}
+&gt; <span class="keyword">for</span> k <span class="keyword">in</span> <span class="global">pairs</span>(set) <span class="keyword">do</span> <span class="global">print</span> (k) <span class="keyword">end</span>
+<span class="global">table</span>: <span class="number">0x7ffd87d04680</span>
+<span class="global">table</span>: <span class="number">0x7ffd87f01100</span>
+</pre>
+
+<p>When a table is used as a key in another table, no comparison takes place.
+So defining what it means to be equal is pointless.</p>
+
+<p>This is the main problem <a href="../index.html#">properset</a> solves.</p>
+
+<p>Scherphof, Baidakou and the Wiki adapt and expand upon Ierusalimschy's
+approach. Consequently, <code>set</code> and <code>OrderedSet</code> share this problem.</p>
+
+<p>Unfortunately, solving this problem means that elements have to be compared,
+so <a href="../index.html#">properset</a> is slower than those approaches.</p>
+
+<p>Moreover, <code>set</code> and <code>OrderSet</code> both sport spartan, undocumented interfaces.
+Scherphof also follows Ierusalimschy in overloading the <code>/</code> and <code>*</code> operators
+for set operations, but neither of those symbols carries the meaning he
+assigns to them, which makes the interface counter-intuitive and the resulting
+code hard to read.</p>
+
+<p><a href="../index.html#">properset</a> aims to have a rich, but sane interface.</p>
+
+
+
+
+<h2>Documentation</h2>
+
+<p>See the <a href="https://odkr.github.io/properset.lua/">package documentation</a>.</p>
+
+<p>And use the source.</p>
+
+
+<h2>Installing <a href="../index.html#">properset</a></h2>
+
+<p>You use <a href="../index.html#">properset</a> <strong>at your own risk</strong>. You have been warned.</p>
+
+<p>You need <a href="https://www.lua.org/">Lua</a> 5.3 or newer.</p>
+
+<p>If you are using <a href="https://luarocks.org/">LuaRocks</a>, simply say:</p>
+
+
+<pre>
+# FIXME: luarocks install properset
+</pre>
+
+<p>Alternatively:</p>
+
+<ol>
+    <li>Download the source for the <a href="https://codeload.github.com/odkr/properset/tar.gz/FIXME">current
+    version</a>.</li>
+    <li>Unpack it.</li>
+</ol>
+
+<p>On most modern Unix systems, you can simply say:</p>
+
+
+<pre>
+curl https://codeload.github.com/odkr/properset/tar.gz/FIXME | tar -xz
+</pre>
+
+<h2>Contact</h2>
+
+<p>If there's something wrong with <a href="../index.html#">properset</a>, <a href="https://github.com/odkr/properset/issues">open an
+issue</a>.</p>
+
+
+<h2>License</h2>
+
+<p>Copyright 2018 Odin Kroeger</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</p>
+
+
+<h2>Further Information</h2>
+
+<p>GitHub:
+<a href="https://github.com/odkr/properset.lua">https://github.com/odkr/properset.lua</a></p>
+
+<p>LuaRocks:
+<a href="http://luarocks.org/modules/odkr/properset">http://luarocks.org/modules/odkr/properset</a></p>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2018-05-16 18:03:14 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

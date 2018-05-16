@@ -4,8 +4,8 @@
 --      > properset = require 'properset'
 --      > Set = properset.Set
 --      > a = Set:new{1, 2, 2, 3, 3, 3}
---      > a:unpack()
---      1       2       3
+--      > a
+--      {1, 2, 3}
 --
 -- @module properset
 -- @author Odin Kroeger
@@ -34,10 +34,10 @@ local print = print
 local _ENV = properset
 
 
--- Sets as Types
+-- Sets as types
 -- =============
 
--- Set Creation
+-- Set creation
 -- ------------
 
 ---
@@ -98,7 +98,7 @@ function Set:__len ()
 end
 
 
--- Iterting Over Sets
+-- Iterting over sets
 -- ------------------
 
 --- Iterates over all members of the set.
@@ -148,7 +148,7 @@ function Set:__pairs ()
 end
 
 
--- Manipulating Sets
+-- Manipulating sets
 -- -----------------
 
 --- Adds elements to a set.
@@ -193,7 +193,7 @@ function Set:delete (members)
 end
 
 
--- Boolean Relations
+-- Boolean relations
 -- -----------------
 
 --- Tests whether the set is empty.
@@ -363,7 +363,7 @@ function Set:is_disjoint_from (other)
 end
 
 
--- Set Arithmetics
+-- Set arithmetics
 -- ---------------
 
 --- The complement of the sets and another set.
@@ -557,7 +557,7 @@ function Set:at_leveln (n)
 end
 
 
--- Convenience Methods
+-- Convenience methods
 -- -------------------
 
 --- A string representation of the set.
@@ -707,11 +707,11 @@ end
 -- @usage
 --      > a = Set:new{1, 2, 3}
 --      > r = a:copy()
---      > r:unpack()
---      1       2       3
+--      > r
+--      {1, 2, 3}
 --      > a:add{4}
---      > r:unpack()
---      1       2       3
+--      > r
+--      {1, 2, 3}
 function Set:copy ()
     local res = Set:new()
     res._members = copy(self._members)
@@ -897,7 +897,7 @@ function next_member(set, k)
 end
 
 
---- Utility Functions
+--- Utility functions
 -- @section function
 
 --- Tests whether an object behaves Set-ish.
@@ -993,7 +993,7 @@ function copy(obj, seen)
 end
 
 
---- Useful Constants
+--- Useful constants
 -- @section constants
 
 --- The empty set.
