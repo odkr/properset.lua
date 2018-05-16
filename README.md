@@ -6,7 +6,6 @@ Allows to handles sets, including complex ones, -- properly.
 `properset` allows to properly handle sets that contain objects, tables,
 or other sets, sports a rich and sane interface, and is well-documented.
 
-This has not yet been released!
 
 Comparison of Set Packages in Lua
 ---------------------------------
@@ -73,18 +72,16 @@ This is the main problem `properset` solves.
 Scherphof, Baidakou and the Wiki adapt and expand upon Ierusalimschy's
 approach. Consequently, `set` and `OrderedSet` share this problem.
 
-Unfortunately, solving this problem means that elements have to be compared,
-so `properset` is slower than those approaches.
+Unfortunately, solving this problem means that elements have to be compared
+one by one, so `properset` is slower than those approaches.
 
-Moreover, `set` and `OrderSet` both sport spartan, undocumented interfaces.
-Scherphof also follows Ierusalimschy in overloading the `/` and `*` operators
-for set operations, but neither of those symbols carries the meaning he
-assigns to them, which makes the interface counter-intuitive and the resulting
-code hard to read.
+Furthermore, `set` and `OrderSet` both sport spartan, undocumented interfaces.
+Scherphof even follows Ierusalimschy in overloading the `/` and `*` operators
+for set operations, but neither of those symbols are associated with the
+operations he assigns to them in set theory; hence, the interface is
+counter-intuitive and the resulting code hard to read.
 
 `properset` aims to have a rich, but sane interface.
-
-
 
 
 Documentation
@@ -104,17 +101,17 @@ You need [Lua](https://www.lua.org/) 5.3 or newer.
 
 If you are using [LuaRocks](https://luarocks.org/), simply say:
 
-    # FIXME: luarocks install properset
+    luarocks install properset
 
 Alternatively:
 
 1. Download the source for the [current
-   version](https://codeload.github.com/odkr/properset/tar.gz/FIXME).
+   version](https://codeload.github.com/odkr/properset/tar.gz/0.1-0).
 2. Unpack it.
 
 On most modern Unix systems, you can simply say:
 
-    curl https://codeload.github.com/odkr/properset/tar.gz/FIXME | tar -xz
+    curl https://codeload.github.com/odkr/properset/tar.gz/0.1-0 | tar -xz
 
 
 Contact
