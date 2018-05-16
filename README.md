@@ -33,7 +33,7 @@ Ierusalimschy proposes to emulate sets using tables:
     reserved = Set{"while", "end", "function", "local"}
 
 This approach is simple and fast, however it gets into trouble, when we want
-set whose members are complex, say, tables or objects:
+set of complexes, say, tables or objects:
 
     > function Set (list)
     >    local set = {}
