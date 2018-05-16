@@ -1,8 +1,8 @@
 package = "properset"
-version = "0.1-0"
+version = "0.2-0"
 source = {
    url = "git://github.com/odkr/properset.lua",
-   tag = "v0.1-0"
+   tag = "v0.2-0"
 }
 description = {
    summary = [[Allows to properly handle sets that contain
@@ -47,7 +47,7 @@ description = {
        > set = Set{a, b}
        > for k in pairs(set) do print (k) end
        table: 0x7ffd87d04680
-       table: 0x7ffd87f01100
+       table: 0x7ffd87f0.200
 
    `a` and `b` are, for all intents and purposes, equal, so they should not
    *both* be members of the same set. However, because they are tables, all
@@ -64,7 +64,7 @@ description = {
        > set = Set{a, b}
        > for k in pairs(set) do print (k) end
        table: 0x7ffd87d04680
-       table: 0x7ffd87f01100
+       table: 0x7ffd87f0.200
 
    When a table is used as a key in another table, no comparison takes place.
    So defining what it means to be equal is pointless.
