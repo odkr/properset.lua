@@ -11,7 +11,7 @@
 -- @author Odin Kroeger
 -- @copyright 2018 Odin Kroeger
 -- @license MIT
--- @release 0.2-0
+-- @release 0.2-1
 
 -- Boilerplate
 -- ===========
@@ -59,7 +59,6 @@ local NOTASETERR = "%s: is not a set."
 -- @type Set
 
 Set = {}
-Set.__index = Set
 
 
 --- Creates a new instance of a prototype, typically `Set`.
@@ -73,9 +72,10 @@ Set.__index = Set
 --      > Set:new{1, 2, 3}
 --      {1, 2, 3}
 function Set:new (members)
-    self = self or Set
+    self = self or {} 
     local set = {_members={}}
     setmetatable(set, self)
+    self.__index = self
     if members then set:add(members) end
     return set
 end
