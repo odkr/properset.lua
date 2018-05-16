@@ -6,10 +6,12 @@ Allows to handles sets, including complex ones, -- properly.
 `properset` allows to properly handle sets that contain objects, tables,
 or other sets, sports a rich and sane interface, and is well-documented.
 
+This has not yet been released!
+
 Comparison of Set Packages in Lua
 ---------------------------------
 
-I have found the following approaches
+I have found the following approaches:
 
 * Roberto Ierusalimschy's example in
   [*Learning Lua*](https://www.lua.org/pil/11.5.html)
@@ -53,7 +55,7 @@ and one and the same they are *not*.
 
 Note: Defining what it means for `a` and `b` to be equal makes no difference:
 
-    > equality = {__eq = function() return true end}
+    > equality = {__eq = function () return true end}
     > a = setmetatable(a, equality)
     > b = setmetatable(b, equality)
     > a == b
