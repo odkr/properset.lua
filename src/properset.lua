@@ -1,4 +1,4 @@
---- Handle complex sets.
+--- Handles complex sets.
 --
 -- @usage
 --      > properset = require 'properset'
@@ -11,7 +11,7 @@
 -- @author Odin Kroeger
 -- @copyright 2018 Odin Kroeger
 -- @license MIT
--- @release 0.2-1
+-- @release 0.3-a0
 
 -- Boilerplate
 -- ===========
@@ -32,14 +32,56 @@ local type = type
 
 local print = print
 
+local math = math
+
 local _ENV = properset
 
 
 -- Constants
 -- =========
 
--- Format for error messages if a value isn't a set.
-local NOTASETERR = "%s: is not a set."
+-- Error message shown on attempts to change a `Set`.
+local SETMODERR = "sets can only be modified using 'add' and 'delete'."
+
+-- Format for error shown if a value isn't a set.
+local NOTASETERR = '%s: not a set.'
+
+-- Default error shown if a value isn't a set.
+local NASDEFERR = 'expected Set, got a %s.'
+
+-- Format for error shown if `add` or `delete` are invoked for `ImmutableSet`.
+local IMMUTABERR = 'set is immutable.'
+
+
+
+-- Private utility functions
+-- =========================
+
+--- Adds an object to a set
+--
+-- Doesn't check whether the object is a members already!
+--
+-- @tparam Set set The set to add to.
+-- @param obj The object to add.
+-- @tparam[opt] number n The position *after* which to add `obj`,
+--  applies only if `obj` is a table.
+--
+-- @return number If `obj` is a table, the position at which it was inserted;
+--  otherwise, `nil`.
+local function xadd (set, obj, n)
+    local vt = set._val
+    local vs = vt.mem
+    local ts = set._tab
+    n = n or #ts
+    if type(obj) == 'table' then
+        n = n + 1
+        ts[n] = obj
+        return n
+    else
+        vs[obj] = true
+        vt.len = vt.len + 1
+    end
+end
 
 
 -- Sets as types
@@ -48,8 +90,10 @@ local NOTASETERR = "%s: is not a set."
 -- Set creation
 -- ------------
 
----
--- Sets can only be modified using `add` and `delete`.
+--- Sets
+--
+-- Sets contain every item at most once.
+-- They can only be modified using `add` and `delete`.
 -- And set members are (mostly) immutable.
 --
 -- You should *not* attempt to modify set members.
@@ -59,24 +103,24 @@ local NOTASETERR = "%s: is not a set."
 -- @type Set
 
 Set = {}
+Set.__index = Set
 
 
 --- Creates a new instance of a prototype, typically `Set`.
 --
--- @tparam[opt] table members Set members.
+-- @tparam[opt] table elems Members for the new set.
 --
--- @return An instance of the given `prototype` for sets,
---  populated with `members`, if any were given.
+-- @return An instance of the given prototype for sets,
+--  populated with `elems`, if any were given.
 --
 -- @usage
 --      > Set:new{1, 2, 3}
 --      {1, 2, 3}
-function Set:new (members)
-    self = self or Set 
-    local set = {_members={}}
+function Set:new (elems)
+    self = self or Set
+    local set = {_val = {len = 0, mem = {}}, _tab = {}}
     setmetatable(set, self)
-    self.__index = self
-    if members then set:add(members) end
+    if elems then set:add(elems) end
     return set
 end
 
@@ -86,7 +130,7 @@ end
 --
 -- @raise An error whenever it's invoked.
 function Set:__newindex()
-    error("sets can only be modified using 'add' and 'delete'.", 2)
+    error(SETMODERR, 2)
 end
 
 
@@ -102,7 +146,7 @@ end
 --      > #a
 --      3
 function Set:__len ()
-    return #self._members
+    return self._val.len + #self._tab
 end
 
 
@@ -115,17 +159,22 @@ end
 --
 -- @usage
 --      > a = Set:new{1, 2, 3}
---      > for v in a:members() do print(v) end
+--      > for v in a:mems() do print(v) end
 --      1
 --      2
 --      3
-function Set:members ()
-    local m = self._members
+function Set:mems ()
+    local vs = self._val.mem
+    local ts = self._tab
+    local k = nil
     local i = 0
-    local n = #m
     return function ()
+        if k ~= nil or i == 0 then
+            k, _ = next(vs, k)
+            if k ~= nil then return k end
+        end
         i = i + 1
-        if i <= n then return m[i] end
+        return ts[i]
     end
 end
 
@@ -139,7 +188,23 @@ end
 --      2       b
 --      3       c
 function Set:__ipairs ()
-    return nth_member, self, 0
+    local vs = self._val.mem
+    local ts = self._tab
+    local n = #ts
+    local k = nil
+    local i = 0
+    local j = 0
+    return function ()
+        j = j + 1
+        if k ~= nil or i == 0 then
+            k, _ = next(vs, k)
+            if k ~= nil then return j, k end
+        end
+        if i < n then
+            i = i + 1
+            return j, ts[i]
+        end
+    end
 end
 
 
@@ -151,9 +216,7 @@ end
 --      1       a
 --      2       b
 --      3       c
-function Set:__pairs ()
-    return next_member, self, nil
-end
+Set.__pairs = Set.__ipairs
 
 
 --- Maps a function of all values of the set onto another set.
@@ -167,9 +230,10 @@ end
 --      > a:map(function(i) return i + 1 end)
 --      {2, 3, 4}
 function Set:map (func)
+    local add = Set.add
     local res = Set:new()
-    for v in self:members() do
-         res:add{func(v)}
+    for v in self:mems() do
+         add(res, {func(v)})
     end
     return res
 end
@@ -186,10 +250,11 @@ end
 --      > a:filter(function(i) return i % 2 == 0 end)
 --      {2}
 function Set:filter (func)
+    local add = Set.add
     local res = Set:new()
-    for v in self:members() do
+    for v in self:mems() do
          if func(v) then
-             res:add{v}
+             add(res, {v})
          end
     end
     return res
@@ -201,7 +266,9 @@ end
 
 --- Adds elements to a set.
 --
--- @tparam table elements A list of elements to be added.
+-- Don't add members to a set while you're iterating over it.
+--
+-- @tparam table elems A list of elements to be added.
 --
 -- @usage
 --      > a = Set:new{1}
@@ -211,46 +278,51 @@ end
 --      > a:add{2}
 --      > a
 --      {1, 2}
-function Set:add (elements)
-    for _, v in ipairs(elements) do
-        if not self:has_member(v) then
-            table.insert(self._members, v)
+function Set:add (elems)
+    local xad = xadd
+    local has = self.has
+    local n
+    -- @todo This will fail for tables that contain `nil` at some point,
+    -- because the iteration will stop.
+    -- It'd be better to test:
+    -- if is_set(elements) or #elements == 0 then (use pairs)
+    -- otherwise count from 1 to len.
+    for _, v in ipairs(elems) do
+        if not has(self, v) then
+            -- @todo Test if it's faster without passing n.
+            n = xad(self, v, n) or n
         end
     end
 end
 
 
---- Deletes elements from a set.
+--- Deletes members from a set.
 --
 -- Don't delete members of a set while you're iterating over it.
 --
--- That is, don't try something like this:
---
---      a = Set:new{1, 2}
---      b = Set:new{2, 4}
---      for v in a:members() do
---          for w in b:members() do
---              if v == w then
---                  a:delete{v}
---              end
---          end
---      end
---
---
--- @tparam table members A list of elements to be deleted.
+-- @tparam table mems A list of members to be deleted.
 --
 -- @usage
 --      > a = Set:new{1, 2, 3}
 --      > a:delete{2, 3}
 --      > a
 --      {1}
-function Set:delete (members)
-    for i = #self._members, 1, -1 do
-        for _, v in ipairs(members) do
-            if self._members[i] == v then
-                table.remove(self._members, i)
-                break
+function Set:delete (mems)
+    local vt = self._val
+    local vs = vt.mem
+    local ts = self._tab
+    -- @todo the same problem as in `add` applies here too.
+    for _, v in ipairs(mems) do
+        if type(v) == 'table' then
+            for i = #ts, 1, -1 do
+                if ts[i] == v then
+                    ts[i] = nil
+                    break
+                end
             end
+        else
+            vs[v] = nil
+            vt.len = vt.len - 1
         end
     end
 end
@@ -283,15 +355,21 @@ end
 --
 -- @usage
 --      > a = Set:new{1}
---      > a:has_member(1)
+--      > a:has(1)
 --      true
---      > a:has_member(0)
+--      > a:has(0)
 --      false
-function Set:has_member (obj)
-    for v in self:members() do
-        if v == obj then return true end
+function Set:has (obj)
+    if type(obj) == 'table' then
+        local ts = self._tab
+        local n = #ts
+        for i = 1, n do
+            if ts[i] == obj then return true end
+        end
+        return false
+    else
+        return self._val.mem[obj] or false
     end
-    return false
 end
 
 
@@ -314,8 +392,9 @@ end
 --      false
 function Set:__le (other)
     assert_set(other, string.format(NOTASETERR, "'other'"))
-    for i in self:members() do
-        if not other:has_member(i) then return false end
+    local has = other.has
+    for i in self:mems() do
+        if not has(other, i) then return false end
     end
     return true
 end
@@ -340,7 +419,7 @@ end
 --      false
 function Set:__ge (other)
     assert_set(other, string.format(NOTASETERR, "'other'"))
-    return other <= self
+    return other:__le(self)
 end
 
 
@@ -367,7 +446,7 @@ end
 --      false
 function Set:__lt (other)
     assert_set(other, string.format(NOTASETERR, "'other'"))
-    if #self < #other then return self <= other end
+    if #self < #other then return self:__le(other) end
     return false
 end
 
@@ -395,7 +474,7 @@ end
 --      false
 function Set:__gt (other)
     assert_set(other, string.format(NOTASETERR, "'other'"))
-    return other < self
+    return other:__lt(self)
 end
 
 
@@ -421,8 +500,8 @@ end
 --      > a ~= c
 --      true
 function Set:__eq (other)
-    if not is_set(other) then return false end
-    if #self == #other then return self <= other end
+    if not is_set(other) or not is_set(self) then return false end
+    if #self == #other then return self:__le(other) end
     return false
 end
 
@@ -544,11 +623,19 @@ end
 
 --- The set's power set.
 --
--- Note: Calculating the power set of a set with five members
--- takes about 0.01s, calculating the power for n = 6 takes about
--- 0.1s, n = 7 takes about 0.5s, n = 8 about 5s, n = 9 about 50s, ...
--- (all on a modern-ish Laptop CPU, without LuaJIT). So be careful
--- what you're trying to calculate.
+-- Calculating a power set runs in exponential time, namely, *O*(2^*n*).
+-- Average times needed to calculate the power set of a set with *n* members
+-- (on an 1,6 GHz Intel Core i5 with Lua 5.3.4):
+--
+-- * n = 8: <0.01s
+-- * n = 9: 0.01s
+-- * n = 10: 0.02s,
+-- * n = 11: 0.03s
+-- * n = 12: 0.06s
+-- * n = 13: 0.12s
+-- * n = 14: 0.28s
+-- * n = 15: 0.51s
+-- * n = 16: 1s
 --
 -- @treturn Set(Set,...) The set's power set.
 --
@@ -557,11 +644,18 @@ end
 --      > a:power()
 --      {{0, 1}, {1}, {}, {0}}
 function Set:power ()
-    local res = Set:new{self}
-    for i in self:members() do
-        local subset = self - Set:new{i}
-        for j in subset:power():members() do
-            res:add{j}
+    local xad = xadd
+    local cop = Set.copy
+    local res = Set:new()
+    local rt = res._tab
+    local n = 1
+    rt[n] = Set:new()
+    for v in self:mems() do
+        for i = 1, n do
+            local s = cop(rt[i])
+            xad(s, v)
+            n = n + 1
+            rt[n] = s
         end
     end
     return res
@@ -615,9 +709,12 @@ end
 function Set:of_rankn (n, desc)
     if desc == nil then desc = false end
     if n == 0 and desc then return self:flatten() end
+    local is_set = is_set
+    local rank = rank
+    local add = Set.add
     local res = Set:new()
-    for v in self:members() do
-        if rank(v) == n then res:add{v} end
+    for v in self:mems() do
+        if rank(v) == n then add(res, {v}) end
         if desc and is_set(v) then res = res + v:of_rankn(n, desc) end
     end
     return res
@@ -654,11 +751,12 @@ function Set:at_leveln (n)
     if n == 1 then
         return self:copy()
     else
+        local is_set = is_set
+        local add = Set.add
         local res = Set:new()
-        for v in self:members() do
+        for v in self:mems() do
             if is_set(v) then
-                local m = v:at_leveln(n-1)
-                res:add(m._members)
+                add(res, v:at_leveln(n-1))
             end
         end
         return res
@@ -680,25 +778,28 @@ end
 --      > tostring(a)
 --      {1, {2, 3}, 4}
 function Set:__tostring ()
-    local res = '{'
-    local i = 1
-    for v in self:members() do
-        if i ~= 1 then res = res .. ', ' end
-        i = i + 1
+    local tostring = tostring
+    local is_set = is_set
+    local t = {}
+    local n = 0
+    for v in self:mems() do
+        n = n + 1
         if is_set(v) then
-            res = res .. v:__tostring()
+            t[n] = v:__tostring()
         else
-            res = res .. tostring(v)
+            t[n] = tostring(v)
         end
     end
-    res = res .. '}'
-    return res
+    return table.concat({'{', '}'}, table.concat(t, ', '))
 end
 
 
 --- The members of the set as a table.
 --
 -- If the set contains other sets, these will be converted to tables, too.
+-- Set `desc` to false to avoid this.
+--
+-- @tparam[opt=true] boolean desc Whether to convert members to tables, too.
 --
 -- @treturn table All members of the set.
 --
@@ -707,13 +808,20 @@ end
 --      > r = a:totable()
 --      > table.unpack(r)
 --      1       2       3
-function Set:totable ()
+function Set:totable (desc)
+    if desc == nil then desc = true end
+    local is_set = is_set
+    local totable = self.totable
     local res = {}
-    for i in self:members() do
-        if is_set(i) then
-            table.insert(res, i:totable())
+    local n = 0
+    -- @todo This fails for recursive sets.
+    -- Arguably, such sets shouldn't exist.
+    for i in self:mems() do
+        n = n + 1
+        if desc and is_set(i) then
+            res[n] = totable(i)
         else
-            table.insert(res, i)
+            res[n] = i
         end
     end
     return res
@@ -730,12 +838,14 @@ end
 --      > b:flatten()
 --      {1, 2, 3, 4}
 function Set:flatten ()
+    local is_set = is_set
+    local add = Set.add
     local res = Set:new()
-    for v in self:members() do
+    for v in self:mems() do
         if is_set(v) then
             res = res + v:flatten()
         else
-            res:add{v}
+            add(res, {v})
         end
     end
     return res
@@ -823,13 +933,87 @@ end
 --      {1, 2, 3}
 function Set:copy ()
     local res = Set:new()
-    res._members = copy(self._members)
+    res._val = copy(self._val)
+    res._tab = copy(self._tab)
     return res
 end
 
+--- Immutable Sets
+--
+-- Immutable Sets are just without an `add` and a `delete` method.
+-- (Strictly speaking, they have those methods, but calling them
+-- results in a runtime error.) They can be populated when they
+-- created but cannot be changed afterwards (through their interface
+-- at any rate).
+--
+-- @type ImmutableSet
+ImmutableSet = {}
+ImmutableSet.__index = ImmutableSet
+
+
+--- Creates a new instance of a set prototype, typically `ImmutableSet`.
+--
+-- Note: You cannot create instances of `ImmutableSet` using `Set.new`.
+--
+-- @tparam[opt] table elems Members for the new set.
+--
+-- @return An instance of the given `prototype` for sets,
+--  populated with `members`, if any were given.
+--
+-- @usage
+--      > ImmutableSet:new{1, 2, 3}
+--      {1, 2, 3}
+function ImmutableSet:new (elems)
+    self = self or ImmutableSet
+    local set = {_val = {len = 0, mem = {}}, _tab = {}}
+    setmetatable(set, self)
+    if elems then Set.add(set, elems) end
+    return set
+end
+
+
+---
+-- Blocks accidential modifications of a set or its members.
+--
+-- @raise An error whenever it's invoked.
+function ImmutableSet.add ()
+    error(IMMUTABERR, 2)
+end
+
+
+---
+-- Blocks accidential modifications of a set or its members.
+--
+-- @raise An error whenever it's invoked.
+function ImmutableSet.delete ()
+    error(IMMUTABERR, 2)
+end
+
+
+--- A string representation of the set.
+--
+-- `__tostring(a)` and `tostring(a)` are equivalent.
+--
+-- I'm not sure why inheritance doesn't work for `__tostring`.
+--
+-- @treturn string A string that represents the set.
+--
+-- @usage
+--      > a = ImmutableSet:new{1, 2}
+--      > tostring(a)
+--      {1, 2}
+--
+-- @todo Document that this needs to be done when inheriting from `Set`.
+-- @todo Find out why it's necessary.
+ImmutableSet.__tostring = Set.__tostring
+
+-- This must be done after the functions have been added.
+-- Once `Set` is the metatable of `ImmutableSet`,
+-- its members can no longer be changed.
+setmetatable(ImmutableSet, Set)
+
 
 --- n-ary set arithmetics
---
 -- @section arithmetics
 
 --- Tests whether two or more sets are disjoint.
@@ -848,9 +1032,10 @@ end
 --      > properset.are_disjoint{a, c, d}
 --      true
 function are_disjoint (sets)
+    local int = intersection
     for i = 1, #sets do
         for j = i + 1, #sets do
-            local s = intersection{sets[i], sets[j]}
+            local s = int{sets[i], sets[j]}
             if #s ~= 0 then return false end
         end
     end
@@ -873,9 +1058,13 @@ end
 --      > properset.complement(a, b)
 --      {1}
 function complement (a, b)
+    local has = b.has
+    local xad = xadd
     local res = Set:new()
-    for i in a:members() do
-        if not b:has_member(i) then res:add{i} end
+    local n = 1
+    for v in a:mems() do
+        -- @todo Test if it's faster without passing n around.
+        if not has(b, v) then n = xad(res, v, n) end
     end
     return res
 end
@@ -896,8 +1085,10 @@ end
 --      > properset.union{a, b, c}
 --      {1, 2, 3}
 function union (sets)
-    local res = sets[1]:copy()
-    for i = 2, #sets do res:add(sets[i]._members) end
+    local add = Set.add
+    local res = Set:new()
+    local n = #sets
+    for i = 1, n do add(res, sets[i]) end
     return res
 end
 
@@ -918,17 +1109,21 @@ end
 --      > properset.intersection{a, b, d}
 --      {1}
 function intersection (sets)
-    if #sets == 1 then
+    local n = #sets
+    if n == 1 then
         return sets[1]
-    elseif #sets > 1 then
-        local res = sets[1]:copy()
-        for i = 2, #sets do
-            for j = #res._members, 1, -1 do
-                if not sets[i]:has_member(res._members[j]) then
-                    table.remove(res._members, j)
-                end
+    elseif n > 1 then
+        local add = Set.add
+        local res
+        local acc = sets[1]
+        for i = 2, n do
+            res = Set:new()
+            for v in acc:mems() do
+                -- @todo Check if properset.add would work.
+                if sets[i]:has(v) then add(res, {v}) end
+                acc = res
             end
-            if res:is_empty() then break end
+            if #acc == 0 then break end
         end
         return res
     end
@@ -955,56 +1150,14 @@ end
 --      > properset.difference{a, b, c}
 --      {1, 4}
 function difference (sets)
-    local res = sets[1]:copy()
-    for i = 2, #sets do
-        res = complement(union{res, sets[i]}, intersection{res, sets[i]})
+    local com = complement
+    local uni = union
+    local int = intersection
+    local res = Set:new()
+    for i = 1, #sets do
+        res = com(uni{res, sets[i]}, int{res, sets[i]})
     end
     return res
-end
-
-
---- Iterating over sets
---
--- @section iteration
-
---- Iterates over sets as if they were lists.
---
--- Unless you're building something fancy,
--- you'll want to use `Set:__ipairs` instead.
---
--- @tparam Set set The set to iterate over.
--- @tparam number i The current index.
---
--- @usage
---      > a = Set:new{'a', 'b', 'c'}
---      > for i, v in properset.nth_member, a, 0 do print(i, v) end
---      1       a
---      2       b
---      3       c
-function nth_member(set, i)
-    i = i + 1
-    local v = set._members[i]
-    if v then return i, v end
-end
-
-
---- Iterates over sets as if they were tables.
---
--- Unless you're building something fancy,
--- you'll want to use `Set:__pairs` instead.
---
--- @tparam Set set The set to iterate over.
--- @tparam number k The current index.
---
--- @usage
---      > a = Set:new{'a', 'b', 'c'}
---      > for k, v in properset.next_member, a, nil do print(i, v) end
---      nil       a
---      nil       b
---      nil       c
-function next_member(set, k)
-    k, v = next(set._members, k)
-    if v then return k, v end
 end
 
 
@@ -1038,12 +1191,12 @@ end
 --- Asserts that an object is a set.
 --
 -- @param obj An object.
--- @param[opt] errmsg An error message.
+-- @param[opt] err An error message.
 --
 -- @raise An error if `obj` isn't a `Set` (or implements the Set protocol).
-function assert_set (obj, errmsg)
-    errmsg = errmsg or 'expected a Set, but got a ' .. type(obj)
-    assert(is_set(obj), errmsg)
+function assert_set (obj, err)
+    err = err or string.format(NASDEFERR, type(obj))
+    assert(is_set(obj), err)
 end
 
 
@@ -1071,32 +1224,17 @@ end
 --      > properset.rank(b)
 --      4
 function rank (obj)
+    local is_set = is_set
+    local rank = rank
     if not is_set(obj) then return 0 end
     local res = 1
-    for v in obj:members() do
+    for v in obj:mems() do
         if is_set(v) then
             r = rank(v) + 1
             if r > res then res = r end
         end
     end
     return res
-end
-
-
---- Shorthand for creating sets.
---
--- Typing `Set:new{}` becomes tiresome quickly.
--- Hence this shorthand.
---
--- @tparam[opt] table members Objects.
---
--- @treturn Set A set, populated with `members`, if any were given.
---
--- @usage
---      > set = betterset.set
---      > a = set{1, 2, 3}
-function set (members)
-    return Set:new(members)
 end
 
 
@@ -1121,8 +1259,9 @@ function copy(obj, seen)
     -- * <https://gist.github.com/tylerneylon/81333721109155b2d244>
     -- * <http://lua-users.org/wiki/CopyTable>
     if type(obj) ~= 'table' then return obj end
-    if is_set(obj) then return obj:copy(true) end
+    if is_set(obj) then return obj:copy() end
     if seen and seen[obj] then return seen[obj] end
+    local copy = copy
     local res = setmetatable({}, getmetatable(obj))
     seen = seen or {}
     seen[obj] = res
@@ -1137,7 +1276,11 @@ end
 -- @section constants
 
 --- The empty set.
--- @field emptyset The empty set (`Set:new{}`).
-emptyset = Set:new()
+--
+-- This set cannot be modified via `add` and `delete`.
+--
+-- @field emptyset The empty set (`ImmutableSet:new{}`).
+emptyset = ImmutableSet:new()
+
 
 return properset
