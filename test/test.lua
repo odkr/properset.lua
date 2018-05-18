@@ -285,6 +285,19 @@ TestBootstrap = {}
         lu.assertItemsEquals(a:totable(), t)
         lu.assertEquals(a._val.len, 1000)
         lu.assertEquals(#a, 1000)
+
+        -- Let's see if sparse arrays are handled correctly.
+        local a = Set:new()
+        local t = {}
+        t[9] = 'sparse'
+        a:add(t)
+        lu.assertTrue(simple_has_all(a, {'sparse'}))
+        lu.assertTrue(simple_has_only(a, {'sparse'}))
+        local a = Set:new()
+        local t = {nil, nil, nil, 1}
+        a:add(t)
+        lu.assertTrue(simple_has_all(a, {1}))
+        lu.assertTrue(simple_has_only(a, {1}))
     end
 
     -- Now that are sure simple sets can be created, it's time to test
@@ -795,6 +808,17 @@ TestBootstrap = {}
         -- Let's test behaviour.
         lu.assertItemsEquals(a:totable(), t)
         lu.assertEquals(#a, 1000)
+
+        -- Let's see if sparse arrays are handled correctly.
+        local t = {}
+        t[9] = 'sparse'
+        local a = Set:new(t)
+        lu.assertTrue(simple_has_all(a, {'sparse'}))
+        lu.assertTrue(simple_has_only(a, {'sparse'}))
+        local t = {nil, nil, nil, 1}
+        local a = Set:new(t)
+        lu.assertTrue(simple_has_all(a, {1}))
+        lu.assertTrue(simple_has_only(a, {1}))
     end
 
     -- I'm done with testing the foundations for simples.

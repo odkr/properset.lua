@@ -1,8 +1,8 @@
 --- Handles complex sets.
 --
 -- @usage
---      > properset = require 'properset'
---      > Set = properset.Set
+--      > set = require 'properset'
+--      > Set = set.Set
 --      > a = Set:new{1, 2, 2, 3, 3, 3}
 --      > a
 --      {1, 2, 3}
@@ -281,12 +281,8 @@ function Set:add (elems)
     local xad = xadd
     local has = self.has
     local n
-    -- @todo This will fail for tables that contain `nil` at some point,
-    -- because the iteration will stop.
-    -- It'd be better to test:
-    -- if is_set(elements) or #elements == 0 then (use pairs)
-    -- otherwise count from 1 to len.
-    for _, v in ipairs(elems) do
+    -- This must be `pairs` to handle sparse arrays correctly.
+    for _, v in pairs(elems) do
         if not has(self, v) then
             -- @todo Test if it's faster without passing n.
             n = xad(self, v, n) or n
@@ -311,7 +307,7 @@ function Set:delete (mems)
     local vs = vt.mem
     local ts = self._tab
     -- @todo the same problem as in `add` applies here too.
-    for _, v in ipairs(mems) do
+    for _, v in pairs(mems) do
         if type(v) == 'table' then
             for i = #ts, 1, -1 do
                 if ts[i] == v then
@@ -523,7 +519,6 @@ end
 --      > a:is_disjoint_from(c)
 --      true
 function Set:is_disjoint_from (other)
-    assert_set(other, string.format(NOTASETERR, "'other'"))
     return are_disjoint{self, other}
 end
 
@@ -548,7 +543,6 @@ end
 --      > a - b
 --      {1}
 function Set:__sub (other)
-    assert_set(other, string.format(NOTASETERR, "'other'"))
     return complement(self, other)
 end
 
@@ -570,7 +564,6 @@ end
 --      > a + b
 --      {1, 2}
 function Set:__add (other)
-    assert_set(other, string.format(NOTASETERR, "'other'"))
     return union{self, other}
 end
 
@@ -595,7 +588,6 @@ end
 --      > a:intersection(c)
 --      {}
 function Set:intersection (other)
-    assert_set(other, string.format(NOTASETERR, "'other'"))
     return intersection {self, other}
 end
 
@@ -615,7 +607,6 @@ end
 --      > a:difference(b)
 --      {2, 3}
 function Set:difference (other)
-    assert_set(other, string.format(NOTASETERR, "'other'"))
     return difference {self, other}
 end
 
@@ -1056,6 +1047,8 @@ end
 --      > properset.complement(a, b)
 --      {1}
 function complement (a, b)
+    assert_set(a, string.format(NOTASETERR, 'a'))
+    assert_set(b, string.format(NOTASETERR, 'b'))
     local has = b.has
     local xad = xadd
     local res = Set:new()
@@ -1083,10 +1076,14 @@ end
 --      > properset.union{a, b, c}
 --      {1, 2, 3}
 function union (sets)
+    local ass = assert_set
     local add = Set.add
     local res = Set:new()
     local n = #sets
-    for i = 1, n do add(res, sets[i]) end
+    for i = 1, n do
+        ass(sets[i], string.format(NOTASETERR, "arg " .. i))
+        add(res, sets[i])
+    end
     return res
 end
 
@@ -1107,14 +1104,17 @@ end
 --      > properset.intersection{a, b, d}
 --      {1}
 function intersection (sets)
+    local ass = assert_set
     local n = #sets
     if n == 1 then
         return sets[1]
     elseif n > 1 then
+        ass(sets[1], string.format(NOTASETERR, "arg " .. 1))
         local add = Set.add
         local res
         local acc = sets[1]
         for i = 2, n do
+            ass(sets[i], string.format(NOTASETERR, "arg " .. i))
             res = Set:new()
             for v in acc:mems() do
                 -- @todo Check if properset.add would work.
@@ -1148,11 +1148,13 @@ end
 --      > properset.difference{a, b, c}
 --      {1, 4}
 function difference (sets)
+    local ass = assert_set
     local com = complement
     local uni = union
     local int = intersection
     local res = Set:new()
     for i = 1, #sets do
+        ass(sets[i], string.format(NOTASETERR, "arg " .. i))
         res = com(uni{res, sets[i]}, int{res, sets[i]})
     end
     return res
@@ -1277,7 +1279,7 @@ end
 --
 -- This set cannot be modified via `add` and `delete`.
 --
--- @field emptyset The empty set (`ImmutableSet:new{}`).
+-- @field emptyset The empty set (`ImmutableSet:new()`).
 emptyset = ImmutableSet:new()
 
 
