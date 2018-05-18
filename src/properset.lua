@@ -90,8 +90,7 @@ end
 -- Set creation
 -- ------------
 
---- Sets
---
+---
 -- Sets contain every item at most once.
 -- They can only be modified using `add` and `delete`.
 -- And set members are (mostly) immutable.
@@ -938,11 +937,10 @@ function Set:copy ()
     return res
 end
 
---- Immutable Sets
---
--- Immutable Sets are just without an `add` and a `delete` method.
+---
+-- Immutable Sets are just sets without an `add` and a `delete` method.
 -- (Strictly speaking, they have those methods, but calling them
--- results in a runtime error.) They can be populated when they
+-- results in a runtime error.) They can be populated when they are
 -- created but cannot be changed afterwards (through their interface
 -- at any rate).
 --
