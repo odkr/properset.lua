@@ -29,11 +29,47 @@ emptyset = properset.emptyset
 --- Constants
 -- @section constants
 
---- Metatable that provides (non-sensical equality for tables).
---
--- @table CardinalEquality A very mathematical kind of equality.
+---
+-- @table CardinalEquality Metatable that provides an absurd equality function.
 -- @field __eq The actual equality function.
-CardinalEquality = {__eq = function (a, b) return #a == #b end}
+CardinalEquality = {}
+function CardinalEquality.__eq (a, b)
+    return #a == #b
+end
+
+---
+-- @table TableEquality Metatable that provides an simple equality function.
+-- @field __eq The eactual equality function.
+TableEquality = {}
+function TableEquality.__eq (a, b)
+    local function cmp(a, b, seen)
+        if a == nil or b == nil then
+            if a == nil and b == nil then return true end
+            return false
+        end
+        seen = seen or {}
+        for k, v in pairs(a) do
+            if type(v) == 'table' then
+                if not seen[v] then
+                    seen[v] = true
+                    if not cmp(v, b[k], seen) then return false end
+                end
+            else
+                if b[k] ~= v then return false end
+            end
+        end
+        return true
+    end
+    return cmp(a, b) and cmp(b, a)
+end
+
+---
+-- @table TableNilIterator Metatable that fools `pairs`.
+-- @field __pairs The actual iterator generator.
+TableNilIterator = {}
+function TableNilIterator.__pairs ()
+    return function() end
+end
 
 
 --- A selection of tables for testing.
@@ -132,9 +168,9 @@ end
 
 --- Bootstrapping Tests
 --
--- At first, we make sure that the datatype itself actually works as inteded.
+-- At first, I nned make sure that the datatype itself works as inteded.
 --
--- That is, we test the following basic behaviours:
+-- Hence, I test the following basic behaviours:
 --
 --  * Creating new sets.
 --  * Testing whether something is a set.
@@ -156,20 +192,20 @@ TestBootstrap = {}
     function TestBootstrap.TestSetNewEmpty ()
         local a = Set:new()
 
-        -- We haven't yet tested behaviours,
-        -- so we can't assume they're reliable.
+        -- I haven't yet tested behaviours,
+        -- so I can't assume they're reliable.
         -- and start by testing the implementation.
         lu.assertItemsEquals(a._val, {mem = {}, len = 0})
         lu.assertItemsEquals(a._tab, {})
         lu.assertEquals(getmetatable(a), Set)
 
-        -- But we should test behaviour, so we do that here:
+        -- But I should test behaviour, so I do that here:
         lu.assertEquals(#a, 0)
         lu.assertEquals(a, Set:new())
         lu.assertEquals(a, emptyset)
     end
 
-    --- Tests whether we can identify sets and non-sets.
+    --- Tests whether sets and non-sets can be identified.
     function TestBootstrap.TestIsSet()
         local a = Set:new()
 
@@ -196,7 +232,7 @@ TestBootstrap = {}
         local a = Set:new()
 
         -- Test whether items are added.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         a:add(tables.num_e1_1)
         local t = tables.num_e1_1
 
@@ -702,14 +738,14 @@ TestBootstrap = {}
         lu.assertTrue(b ~= c)
     end
 
-    -- At this point, we can be sure that fundamental operations work.
+    -- At this point, I can be sure that fundamental operations work.
     -- That means: The foundations are good. And, what is more,
-    -- we can know use membership iterations, membershipts tests,
+    -- I can know use membership iterations, membershipts tests,
     -- equality tests and set size in tests, but only for sets of simples.
 
     --- Tests whether creating non-empty sets of simples works.
     function TestBootstrap.TestSetNewSimple()
-        -- We start by testing the implementation.
+        -- I start by testing the implementation.
         local a = Set:new(tables.num_e1_1)
         local b = Set:new()
         local t = tables.num_e1_1
@@ -761,20 +797,20 @@ TestBootstrap = {}
         lu.assertEquals(#a, 1000)
     end
 
-    -- We are done with testing the foundations for simples.
-    -- Now we need to do the same thing for sets of tables and sets of sets.
+    -- I'm done with testing the foundations for simples.
+    -- Now I need to do the same thing for sets of tables and sets of sets.
 
     --- Tests whether adding to sets works, for tables.
     function TestBootstrap.TestSetAddTable()
         -- Test whether this confuses `add`.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         local a = Set:new()
         a:add{{1}}
         local t = {{1}}
         lu.assertEquals(a._tab, t)
 
         -- Test whether items are added.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         local a = Set:new()
         a:add{{1}, {2}, {3}}
         local t = {{1}, {2}, {3}}
@@ -952,18 +988,18 @@ TestBootstrap = {}
         lu.assertFalse(b ~= a)
     end
 
-    -- At this point, we can be sure that fundamental operations work.
+    -- At this point, I can be sure that fundamental operations work.
 
     --- Tests whether creating non-empty sets of tables works.
     function TestBootstrap.TestSetNewTables()
         -- Test whether this confuses `new`.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         local a = Set:new{{1}}
         local t = {{1}}
         lu.assertEquals(a._tab, t)
 
         -- Test whether items are added.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         local a = Set:new{{1}, {2}, {3}}
         local t = {{1}, {2}, {3}}
         lu.assertEquals(a._tab, t)
@@ -995,22 +1031,22 @@ TestBootstrap = {}
         lu.assertEquals(#a, 100)
     end
 
-    -- We are done with testing the foundations for sets of tables.
-    -- Now we need to do the same thing for sets of sets; even though
+    -- I'm done with testing the foundations for sets of tables.
+    -- Now I need to do the same thing for sets of sets; even though
     -- they are only a special case of sets for tables, better be safe
     -- than sorry.
 
     --- Tests whether adding to sets works, for sets.
     function TestBootstrap.TestSetAddSet()
         -- Test whether this confuses `add`.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         local a = Set:new()
         a:add{Set:new{1}}
         local t = {Set:new{1}}
         lu.assertEquals(a._tab, t)
 
         -- Test whether items are added.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         local a = Set:new()
         a:add{Set:new{1}, Set:new{2}, Set:new{3}}
         local t = {Set:new{1}, Set:new{2}, Set:new{3}}
@@ -1168,18 +1204,18 @@ TestBootstrap = {}
         lu.assertFalse(b ~= a)
     end
 
-    -- At this point, we can be sure that fundamental operations work.
+    -- At this point, I can be sure that fundamental operations work.
 
     --- Tests whether creating non-empty sets of sets works.
     function TestBootstrap.TestSetNewSet()
         -- Test whether this confuses `add`.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         local a = Set:new{Set:new{1}}
         local t = {Set:new{1}}
         lu.assertEquals(a._tab, t)
 
         -- Test whether items are added.
-        -- Again, we're testing the implementation only right now.
+        -- Again, I'm testing the implementation only right now.
         local a = Set:new{Set:new{1}, Set:new{2}, Set:new{3}}
         local t = {Set:new{1}, Set:new{2}, Set:new{3}}
         lu.assertEquals(a._tab, t)
@@ -1211,8 +1247,8 @@ TestBootstrap = {}
         lu.assertEquals(#a, 100)
     end
 
-    -- We are done with testing the foundations for sets of tables.
-    -- Now we need to do the same thing for sets of all three
+    -- I'm done with testing the foundations for sets of tables.
+    -- Now I need to do the same thing for sets of all three
     -- types of elements.
 
     --- Tests whether adding to sets works, for arbitrary elements.
@@ -1342,7 +1378,7 @@ TestBootstrap = {}
         lu.assertFalse(a == c)
     end
 
-    -- At this point, we can be reasonably sure that the fundamental
+    -- At this point, I can be reasonably sure that the fundamental
     -- operations work.
 
     --- Tests whether creating non-empty sets with arbitrary elements works.
@@ -1373,7 +1409,7 @@ TestBootstrap = {}
     end
 
 
--- Now we can be reasonably sure that the operations needed to determine the
+-- Now I can be reasonably sure that the operations needed to determine the
 -- identity and the contents of sets work and can proceed with the remaining
 -- tests.
 
@@ -1381,9 +1417,9 @@ TestBootstrap = {}
 --- More testing materials
 -- @section tests
 
---- Sets for testing
---
--- At this point, we are reasonably sure that set creation works.
+---
+-- Sets for testing
+-- At this point, it's reasonably sure that set creation works.
 -- So let's create some sets for later.
 --
 -- @table sets
@@ -1406,8 +1442,86 @@ for k, v in pairs(tables) do sets[k] = Set:new(v) end
 -- by some operations, so they need to be tested first.
 --
 -- @table TestCopy
+TestCopy = {}
 
--- FIXME
+    --- Test copying non-sets.
+    function TestCopy.TestCopyNonSets()
+        -- Test simple copies.
+        for _, v in pairs(tables) do
+            local t = properset.copy(v)
+            lu.assertItemsEquals(t, v)
+        end
+
+        -- Test a nested table.
+        local t = {1, 2, 3, {1, 2, 3, {4, 5, 6}}}
+        local c = properset.copy(t)
+        lu.assertItemsEquals(t, c)
+
+        -- Test a self-referential table.
+        local t = setmetatable({1, 2, 3}, TableEquality)
+        t.t = t
+        local c = properset.copy(t)
+        lu.assertItemsEquals(c, t)
+
+        -- Test a table that has another table as key.
+        local t = setmetatable({1, 2, 3}, TableEquality)
+        local u = {1, 2, 3, {4, 5, 6}}
+        u[t] = 7
+        local c = properset.copy(u)
+        lu.assertItemsEquals(c, u)
+
+        -- Test a table that overrides `__pairs`.
+        local t = setmetatable({1, 2, 3}, TableNilIterator)
+        local c = properset.copy(t)
+        lu.assertItemsEquals(c, t)
+
+        -- Test a table that does all of this.
+        local t = setmetatable({1, 2, 3, {4, 5}},
+            {__eq = TableEquality.__eq,
+             __pairs = TableNilIterator.__pairs})
+        local u = {1, 2, 3, {4, 5, 6}}
+        t[u] = {1, 2, 3, {4, 5}}
+        t.t = t
+        local c = properset.copy(t)
+        lu.assertItemsEquals(c, t)
+    end
+
+    --- Tests copying of sets.
+    function TestCopy.TestSetCopy()
+        -- Test if empty stays empty.
+        local c = emptyset:copy()
+        lu.assertEquals(c, emptyset)
+
+        -- Test simple copies.
+        for k, v in pairs(sets) do
+            local s = v:copy()
+            lu.assertItemsEquals(s, v)
+        end
+
+        -- Test a nested set.
+        local a = Set:new{1, Set:new{2}, Set:new{3}}
+        local c = a:copy()
+        lu.assertItemsEquals(a, c)
+    end
+
+    --- Tests copying of sets with regular copy function.
+    function TestCopy.TestCopySets()
+        -- Test if empty stays empty.
+        local c = properset.copy(emptyset)
+        lu.assertEquals(c, emptyset)
+
+        -- Test simple copies.
+        for _, v in pairs(sets) do
+            local s = properset.copy(v)
+            lu.assertItemsEquals(s, v)
+        end
+
+        -- Test a nested set.
+        local a = Set:new{1, Set:new{2}, Set:new{3}}
+        local c = properset.copy(a)
+        lu.assertItemsEquals(a, c)
+    end
+
 
 ---
 -- Conversion functions, as it happens, do not require fancy
@@ -1419,8 +1533,8 @@ TestConversion = {}
 
     --- Test conversion to tables.
     --
-    -- We used `totable` above extensively. It's a useful tests
-    -- (but wasn't our only one). Now it's time to check whether
+    -- I used `totable` above extensively.
+    -- Now it's time at last to check whether
     -- it works (on the assumption that `Set:new` works.)
     function TestConversion.TestSetToTable()
         -- This doesn't test recursive construct, but a good variety of stuff.
@@ -1470,13 +1584,24 @@ TestConversion = {}
     end
 
 
--- remaining iterators
+---
+-- Some functions are just shortcuts for converting a set to a table and
+-- then calling a function from `table`. However `unpack` is an important
+-- way to check the contents of a set; particularly if `__tostring`
+-- doesn't suffice so these tests go first.
+--
+-- @table Tests for aable-ish functions
+TestTable = {}
+
 -- core utility methods (totable, unpack)
--- core convenience methods (tostring)
--- core copying (copy, set:copy)
+-- remaining iterators
+
+
 -- access blocking
+
 -- boolean operations
 -- set manipulation
+
 -- arithmetics
 -- remaining methods
 -- remaining functions
@@ -1672,14 +1797,6 @@ function TestUnpack()
     lu.assertEquals(z, 3)
 end
 
-function TestSetCopy()
-    local a = Set:new{1, 2, 3, 4, 5}
-    local b = a:power()
-    local c = b:copy()
-    lu.assertEquals(b, c)
-    b:add{1}
-    lu.assertNotEquals(b, c)
-end
 
 function TestNDisjoint()
     local a = Set:new{1}
@@ -1735,16 +1852,7 @@ function TestRankF()
 end
 
 
-function TestCopy()
-    local a = {a = 0, b = 1, c = 2, d = 3}
-    a.a = a
-    local b = properset.copy(a)
-    b.a = a
-    local c = {1, 2, {3, 4, {5, 6, {7, 8}}}}
-    local d = properset.copy(c)
-    lu.assertItemsEquals(b, a)
-    lu.assertEquals(c, d)
-end
+
 
 function TestEmptySet()
     lu.assertEquals(#emptyset, 0)
