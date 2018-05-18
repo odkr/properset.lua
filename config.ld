@@ -5,5 +5,5 @@ objects, tables, or other sets, sports a rich and sane interface, and is
 well-documented.]]
 readme = 'README.md'
 file = { 'src/properset.lua' }
-format = 'markdown'
+format = 'discount'
 dir = 'docs'
