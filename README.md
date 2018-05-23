@@ -7,10 +7,10 @@ Allows to handles sets, including complex ones, -- properly.
 or other sets, sports a rich and sane interface, and is well-documented.
 
 
-Comparison of Set Packages in Lua
----------------------------------
+Approaches to Handling Sets in Lua
+----------------------------------
 
-I have found the following approaches:
+I found the following other approaches:
 
 * Roberto Ierusalimschy's example in
   [*Learning Lua*](https://www.lua.org/pil/11.5.html)
@@ -31,8 +31,8 @@ Ierusalimschy proposes to emulate sets using tables:
 
     reserved = Set{"while", "end", "function", "local"}
 
-This approach is simple and fast, however it gets into trouble if we want
-set of complexes, say, tables or objects:
+This approach is simple and fast. However, it gets into trouble if we want
+to create sets of more complex data types, say, tables or objects:
 
     > function Set (list)
     >    local set = {}
@@ -47,16 +47,17 @@ set of complexes, say, tables or objects:
     table: 0x7ffd87d04680
     table: 0x7ffd87f0.200
 
-`a` and `b` are, for all intents and purposes, equal, so they should not
-*both* be members of the same set. However, because they are tables, all
+`a` and `b` are, for all intents and purposes, equal, so they should *not*
+both be members of the same set. However, because they are tables, all
 that matters when they are used as keys in other tables is their identity;
 and one and the same they are *not*.
 
-Note: Defining what it means for `a` and `b` to be equal makes no difference:
+And just in case, you wondered, defining what it means for `a` and `b`
+to be equal makes no difference:
 
-    > equality = {__eq = function () return true end}
-    > a = setmetatable(a, equality)
-    > b = setmetatable(b, equality)
+    > maximum_equality = {__eq = function () return true end}
+    > a = setmetatable({1}, maximum_equality)
+    > b = setmetatable({1}, maximum_equality)
     > a == b
     true
     > set = Set{a, b}
@@ -65,23 +66,37 @@ Note: Defining what it means for `a` and `b` to be equal makes no difference:
     table: 0x7ffd87f0.200
 
 When a table is used as a key in another table, no comparison takes place.
-So defining what it means to be equal is pointless.
-
-This is the main problem `properset` solves.
+So defining what it means to be equal makes no difference for that purpose.
 
 Scherphof, Baidakou and the Wiki adapt and expand upon Ierusalimschy's
 approach. Consequently, `set` and `OrderedSet` share this problem.
 
+This is the main problem `properset` solves:
+
+    > properset = require 'properset'
+    > Set = properset.Set
+    > maximum_equality = {__eq = function () return true end}
+    > a = setmetatable({1}, maximum_equality)
+    > b = setmetatable({1}, maximum_equality)
+    > a == b
+    true
+    > set = Set{a, b}
+    > #set
+    1
+
 Unfortunately, solving this problem means that elements have to be compared
-one by one, so `properset` is slower than those approaches.
+one by one, so, for sets of tables or objects, `properset` is slower than
+those approaches; for simpler data types, `properset` also uses
+Ierusalimschy's approach.
 
-Furthermore, `set` and `OrderSet` both sport spartan, undocumented interfaces.
-Scherphof even follows Ierusalimschy in overloading the `/` and `*` operators
-for set operations, but neither of those symbols are associated with the
-operations he assigns to them in set theory; hence, the interface is
-counter-intuitive and the resulting code hard to read.
+Moreover, `set` and `OrderSet` both sport spartan, undocumented interfaces.
+Scherphof even follows Ierusalimschy in overloading the `*` operator to mean
+'intersect'. However, `*` carries no meaning in set theory. The closest set
+theory comes to multiplications are cartesian products, which have nothing
+to do with intersections of sets. This makes the interface counter-intuitive
+and the resulting code hard to understand.
 
-`properset` aims to have a rich, but sane interface.
+`properset` also aims to have a rich and sane interface.
 
 
 Documentation

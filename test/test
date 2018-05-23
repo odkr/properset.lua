@@ -1,7 +1,9 @@
+#!/usr/bin/env lua
 --- Test suite for `properset`.
 --
 -- Requires `luaunit` and assumes that `luarocks` is installed.
 --
+-- @script Tests `properset`.
 -- @author Odin Kroeger
 -- @copyright 2018 Odin Kroeger
 -- @license MIT
@@ -29,54 +31,7 @@ emptyset = properset.emptyset
 --- Constants
 -- @section constants
 
----
--- @table CardinalEquality Metatable that provides an absurd equality function.
--- @field __eq The actual equality function.
-CardinalEquality = {}
-function CardinalEquality.__eq (a, b)
-    return #a == #b
-end
-
----
--- @table TableEquality Metatable that provides an simple equality function.
--- @field __eq The eactual equality function.
-TableEquality = {}
-function TableEquality.__eq (a, b)
-    local function cmp(a, b, seen)
-        if a == nil or b == nil then
-            if a == nil and b == nil then return true end
-            return false
-        end
-        seen = seen or {}
-        for k, v in pairs(a) do
-            if type(v) == 'table' then
-                if not seen[v] then
-                    seen[v] = true
-                    if not cmp(v, b[k], seen) then return false end
-                end
-            else
-                if b[k] ~= v then return false end
-            end
-        end
-        return true
-    end
-    return cmp(a, b) and cmp(b, a)
-end
-
----
--- @table TableNilIterator Metatable that fools `pairs`.
--- @field __pairs The actual iterator generator.
-TableNilIterator = {}
-function TableNilIterator.__pairs ()
-    return function() end
-end
-
-
---- A selection of tables for testing.
---
--- These tables will come in useful later.
---
--- @table sets
+-- @table tables A selection of tables for testing.
 tables = {
     zer_e0_0 = {},
     num_e1_1 = {1, 2, 3},
@@ -112,8 +67,39 @@ tables.tab_e1_2 = {tables.fal_e0_0, tables.str_e2_0, tables.sim_e1_1}
 tables.tab_e1_3 = {tables.str_e1_1, tables.num_e3_0, tables.bol_e1_1}
 
 
+-- @table sets Sets for testing.
+sets = {}
+for k, v in pairs(tables) do sets[k] = Set:new(v) end
+
+
 --- Utility functions
 -- @section utility
+
+--- Compares tables
+--
+-- @tparam table a The first table.
+-- @tparam table b The second table.
+--
+-- @treturn `true` if `b` has all elements that `a` has; `false` otherwise.
+function cmptables (a, b, seen)
+    if a == nil or b == nil then
+        if a == nil and b == nil then return true end
+        return false
+    end
+    seen = seen or {}
+    for k, v in pairs(a) do
+        if type(v) == 'table' then
+            if not seen[v] then
+                seen[v] = true
+                if not cmptables(v, b[k], seen) then return false end
+            end
+        elseif b[k] ~= v then 
+            return false
+        end
+    end
+    return true
+end
+
 
 --- Tests whether a set of simples has all given members
 --
@@ -159,10 +145,57 @@ end
 --
 -- @treturn table A table with all numbers that were members of the set
 --  (or of sets within the set).
-local function strtotable(str)
+function setstr_to_table(str)
     local res = {}
     for n in string.gmatch(str, '%d+') do res[#res + 1] = tonumber(n) end
     return res
+end
+
+
+--- Splits up a string into a table of characters.
+-- 
+-- @tparam string str A string.
+--
+-- @treturn {string,...} A table of characters.
+function str_split(str)
+    local res = {}
+    for i = 1, #str do res[i] = str:sub(i, i) end
+    return res
+end
+
+
+--- Metatables
+-- @section metatables
+
+---
+-- @type CompTable Tables that can be compared.
+CompTable = {}
+
+--- Compares tables.
+-- 
+-- @tparam table a The first table.
+-- @tparam table b The second table.
+--
+-- @treturn boolean `true` if `a` equals `b`; `false` otherwise.
+function CompTable.__eq (a, b)
+   return cmptables(a, b) and cmptables(b, a)
+end
+
+
+--- A string representation.
+-- function CompTable.__tostring(tab)
+-- 
+-- end
+
+
+---
+-- @type Single Tables that fool `pairs`.
+Single = {}
+
+--- Returns an iterator that always returns `nil`.
+-- @treturn function An iterator.
+function Single.__pairs ()
+    return function() end
 end
 
 
@@ -197,7 +230,24 @@ TestBootstrap = {}
         -- and start by testing the implementation.
         lu.assertItemsEquals(a._val, {mem = {}, len = 0})
         lu.assertItemsEquals(a._tab, {})
-        lu.assertEquals(getmetatable(a), Set)
+        lu.assertEquals(getmetatable(a), Set.mt)
+
+        -- But I should test behaviour, so I do that here:
+        lu.assertEquals(#a, 0)
+        lu.assertEquals(a, Set:new())
+        lu.assertEquals(a, emptyset)
+    end
+
+    --- Tests call interface.
+    function TestBootstrap.TestSetMtCallEmpty ()
+        local a = Set()
+
+        -- I haven't yet tested behaviours,
+        -- so I can't assume they're reliable.
+        -- and start by testing the implementation.
+        lu.assertItemsEquals(a._val, {mem = {}, len = 0})
+        lu.assertItemsEquals(a._tab, {})
+        lu.assertEquals(getmetatable(a), Set.mt)
 
         -- But I should test behaviour, so I do that here:
         lu.assertEquals(#a, 0)
@@ -226,6 +276,7 @@ TestBootstrap = {}
         local c = Set:new{a}
         lu.assertTrue(properset.is_set(a))
     end
+
 
     --- Tests whether adding to sets works, for simple elements.
     function TestBootstrap.TestSetAddSimple()
@@ -300,11 +351,12 @@ TestBootstrap = {}
         lu.assertTrue(simple_has_only(a, {1}))
     end
 
+
     -- Now that are sure simple sets can be created, it's time to test
     -- iteration, membership, counting, subsets and equalities for such sets.
 
     --- Tests whether iterating over sets of simples works.
-    function TestBootstrap.TestSetMembersSimple()
+    function TestBootstrap.TestSetMemsSimple()
         -- Test for numbers.
         local a = Set:new()
         local t = {}
@@ -395,8 +447,9 @@ TestBootstrap = {}
         lu.assertItemsEquals(a:totable(), tables.sim_e1_2)
     end
 
+
     --- Tests whether membership determination works.
-    function TestBootstrap.TestSetHasMemberSimple()
+    function TestBootstrap.TestSetHasSimple()
         -- Test numbers.
         local a = Set:new()
         local t = {1, 2, 3}
@@ -453,55 +506,46 @@ TestBootstrap = {}
         for _, k in pairs{'f', 9, 'z'} do lu.assertFalse(a:has(k)) end
     end
 
+
     --- Tests counting.
-    function TestBootstrap.TestSetLenSimple()
+    function TestBootstrap.TestSetMtLenSimple()
         -- Start with something easy.
-        lu.assertEquals(emptyset:__len(), 0)
         lu.assertEquals(#emptyset, 0)
 
         -- Let's do something more complicated.
         local a = Set:new()
         a:add{1, 2, 2, 3, 3, 3, 'b', true, false, false, true, 'b', nil}
-        lu.assertEquals(a:__len(), 6)
         lu.assertEquals(#a, 6)
 
         -- Let's check that it counts correctly for large-ish numbers.
         local a = Set:new()
         a:add(tables.num_e3_0)
-        lu.assertEquals(a:__len(), 1000)
         lu.assertEquals(#a, 1000)
     end
 
+
     --- Tests whether subsets are correctly identified.
-    function TestBootstrap.TestSetLeSimple()
+    function TestBootstrap.TestSetMtLeSimple()
         -- Start off easy.
         local a = Set:new()
         local b = Set:new()
-
-        lu.assertTrue(a:__le(b))
-        lu.assertTrue(b:__le(a))
         lu.assertTrue(a <= b)
         lu.assertTrue(b <= a)
 
         -- Complicate things, with numbers.
         for i = 1, 10 do
             a:add{i}
-            lu.assertTrue(b:__le(a))
-            lu.assertFalse(a:__le(b))
             lu.assertTrue(b <= a)
             lu.assertFalse(a <= b)
         end
 
         for i = 1, 9 do
             b:add{i}
-            lu.assertTrue(b:__le(a))
-            lu.assertFalse(a:__le(b))
             lu.assertTrue(b <= a)
             lu.assertFalse(a <= b)
         end
 
         b:add{0}
-        lu.assertFalse(b:__le(a))
         lu.assertFalse(b <= a)
 
         -- Test nil.
@@ -509,8 +553,6 @@ TestBootstrap = {}
         local b = Set:new()
 
         a:add{nil}
-        lu.assertTrue(b:__le(a))
-        lu.assertTrue(a:__le(b))
         lu.assertTrue(b <= a)
         lu.assertTrue(a <= b)
 
@@ -519,19 +561,14 @@ TestBootstrap = {}
         local b = Set:new()
 
         a:add{false}
-        lu.assertTrue(b:__le(a))
-        lu.assertFalse(a:__le(b))
         lu.assertTrue(b <= a)
         lu.assertFalse(a <= b)
 
         b:add{false}
-        lu.assertTrue(b:__le(a))
-        lu.assertTrue(a:__le(b))
         lu.assertTrue(b <= a)
         lu.assertTrue(a <= b)
 
         b:add{true}
-        lu.assertFalse(b:__le(a))
         lu.assertFalse(b <= a)
 
         -- Test strings.
@@ -540,22 +577,17 @@ TestBootstrap = {}
 
         for _, k in pairs{'a', 'b', 'c'} do
             a:add{k}
-            lu.assertTrue(b:__le(a))
-            lu.assertFalse(a:__le(b))
             lu.assertTrue(b <= a)
             lu.assertFalse(a <= b)
         end
 
         for _, k in pairs{'a', 'b'} do
             b:add{k}
-            lu.assertTrue(b:__le(a))
-            lu.assertFalse(a:__le(b))
             lu.assertTrue(b <= a)
             lu.assertFalse(a <= b)
         end
 
         b:add{'z'}
-        lu.assertFalse(b:__le(a))
         lu.assertFalse(b <= a)
 
         -- Test a combination of all of the above.
@@ -566,28 +598,21 @@ TestBootstrap = {}
         b:add{1, 'x', true}
         c:add{2, false}
 
-        lu.assertTrue(b:__le(a))
-        lu.assertTrue(b < a)
-        lu.assertTrue(c:__le(a))
-        lu.assertTrue(c < a)
-        lu.assertFalse(a:__le(b))
-        lu.assertFalse(a < b)
-        lu.assertFalse(a:__le(c))
-        lu.assertFalse(a < c)
-        lu.assertFalse(b:__le(c))
-        lu.assertFalse(b < c)
-        lu.assertFalse(c:__le(b))
-        lu.assertFalse(c < b)
+        lu.assertTrue(b <= a)
+        lu.assertTrue(c <= a)
+        lu.assertFalse(a <= b)
+        lu.assertFalse(a <= c)
+        lu.assertFalse(b <= c)
+        lu.assertFalse(c <= b)
     end
 
+
     --- Tests equality.
-    function TestBootstrap.TestSetEqSimple()
+    function TestBootstrap.TestSetMtEqSimple()
         -- Start off easy.
         local a = Set:new()
         local b = Set:new()
 
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
@@ -596,8 +621,6 @@ TestBootstrap = {}
         -- Complicate things, with numbers.
         for i = 1, 10 do
             a:add{i}
-            lu.assertFalse(b:__eq(a))
-            lu.assertFalse(a:__eq(b))
             lu.assertFalse(b == a)
             lu.assertFalse(a == b)
             lu.assertTrue(b ~= a)
@@ -606,8 +629,6 @@ TestBootstrap = {}
 
         for i = 1, 9 do
             b:add{i}
-            lu.assertFalse(b:__eq(a))
-            lu.assertFalse(a:__eq(b))
             lu.assertFalse(b == a)
             lu.assertFalse(a == b)
             lu.assertTrue(b ~= a)
@@ -615,8 +636,6 @@ TestBootstrap = {}
         end
 
         b:add{10}
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
@@ -627,8 +646,6 @@ TestBootstrap = {}
         local b = Set:new()
 
         a:add{nil}
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
@@ -639,24 +656,18 @@ TestBootstrap = {}
         local b = Set:new()
 
         a:add{false}
-        lu.assertFalse(b:__eq(a))
-        lu.assertFalse(a:__eq(b))
         lu.assertFalse(b == a)
         lu.assertFalse(a == b)
         lu.assertTrue(b ~= a)
         lu.assertTrue(a ~= b)
 
         b:add{false}
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
         lu.assertFalse(b ~= a)
 
         b:add{true}
-        lu.assertFalse(b:__eq(a))
-        lu.assertFalse(a:__eq(b))
         lu.assertFalse(b == a)
         lu.assertFalse(a == b)
         lu.assertTrue(b ~= a)
@@ -666,24 +677,18 @@ TestBootstrap = {}
         local b = Set:new()
 
         a:add{true}
-        lu.assertFalse(b:__eq(a))
-        lu.assertFalse(a:__eq(b))
         lu.assertFalse(b == a)
         lu.assertFalse(a == b)
         lu.assertTrue(b ~= a)
         lu.assertTrue(a ~= b)
 
         b:add{true}
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
         lu.assertFalse(b ~= a)
 
         b:add{false}
-        lu.assertFalse(b:__eq(a))
-        lu.assertFalse(a:__eq(b))
         lu.assertFalse(b == a)
         lu.assertFalse(a == b)
         lu.assertTrue(b ~= a)
@@ -695,8 +700,6 @@ TestBootstrap = {}
 
         for _, k in pairs{'a', 'b', 'c'} do
             a:add{k}
-            lu.assertFalse(b:__eq(a))
-            lu.assertFalse(a:__eq(b))
             lu.assertFalse(b == a)
             lu.assertFalse(a == b)
             lu.assertTrue(b ~= a)
@@ -705,8 +708,6 @@ TestBootstrap = {}
 
         for _, k in pairs{'a', 'b'} do
             b:add{k}
-            lu.assertFalse(b:__eq(a))
-            lu.assertFalse(a:__eq(b))
             lu.assertFalse(b == a)
             lu.assertFalse(a == b)
             lu.assertTrue(b ~= a)
@@ -714,8 +715,6 @@ TestBootstrap = {}
         end
 
         b:add{'c'}
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
@@ -729,27 +728,22 @@ TestBootstrap = {}
         b:add{1, 2, 'x', false, 3, true, nil, nil}
         c:add{2, false}
 
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
         lu.assertFalse(b ~= a)
 
-        lu.assertFalse(a:__eq(c))
-        lu.assertFalse(c:__eq(a))
         lu.assertFalse(a == c)
         lu.assertFalse(c == a)
         lu.assertTrue(a ~= c)
         lu.assertTrue(c ~= a)
 
-        lu.assertFalse(b:__eq(c))
-        lu.assertFalse(c:__eq(b))
         lu.assertFalse(b == c)
         lu.assertFalse(c == b)
         lu.assertTrue(c ~= b)
         lu.assertTrue(b ~= c)
     end
+
 
     -- At this point, I can be sure that fundamental operations work.
     -- That means: The foundations are good. And, what is more,
@@ -820,6 +814,72 @@ TestBootstrap = {}
         lu.assertTrue(simple_has_all(a, {1}))
         lu.assertTrue(simple_has_only(a, {1}))
     end
+    
+    --- Tests call interface.
+    function TestBootstrap.TestSetMtCallSimple ()
+        -- I start by testing the implementation.
+        local a = Set(tables.num_e1_1)
+        local b = Set()
+        local t = tables.num_e1_1
+        b:add(t)
+
+        lu.assertTrue(simple_has_all(a, t))
+        lu.assertTrue(simple_has_only(a, t))
+        lu.assertEquals(a._val.len, 3)
+
+        -- And some behaviour.
+        lu.assertEquals(#a, 3)
+        lu.assertEquals(a, b)
+
+        -- Test whether items are added only once
+        -- Still only testing the implementation.
+        local a = Set{1, 2, 2, 3, 3, 3, 'b',
+            true, false, false, true, 'b', nil}
+        local b = Set()
+        local t = {1, 2, 3, 'b', true, false}
+        b:add(t)
+
+        lu.assertTrue(simple_has_all(a, t))
+        lu.assertTrue(simple_has_only(a, t))
+        lu.assertEquals(a._val.len, 6)
+
+        lu.assertEquals(#a, 6)
+        lu.assertEquals(a, b)
+
+        -- Let's test for something weird.
+        -- This should do nothing:
+        local a = Set{nil, nil, nil}
+        local t = {}
+        lu.assertTrue(simple_has_all(a, t))
+        lu.assertTrue(simple_has_only(a, t))
+        lu.assertEquals(a._val.len, 0)
+        lu.assertItemsEquals(a:totable(), t)
+        lu.assertEquals(a, Set:new{})
+        lu.assertEquals(#a, 0)
+
+        -- Test for large-ish numbers of items.
+        local t = tables.num_e3_0
+        local a = Set(t)
+        lu.assertTrue(simple_has_all(a, t))
+        lu.assertTrue(simple_has_only(a, t))
+        lu.assertEquals(a._val.len, 1000)
+
+        -- Let's test behaviour.
+        lu.assertItemsEquals(a:totable(), t)
+        lu.assertEquals(#a, 1000)
+
+        -- Let's see if sparse arrays are handled correctly.
+        local t = {}
+        t[9] = 'sparse'
+        local a = Set(t)
+        lu.assertTrue(simple_has_all(a, {'sparse'}))
+        lu.assertTrue(simple_has_only(a, {'sparse'}))
+        local t = {nil, nil, nil, 1}
+        local a = Set(t)
+        lu.assertTrue(simple_has_all(a, {1}))
+        lu.assertTrue(simple_has_only(a, {1}))
+    end
+
 
     -- I'm done with testing the foundations for simples.
     -- Now I need to do the same thing for sets of tables and sets of sets.
@@ -844,9 +904,9 @@ TestBootstrap = {}
         -- Still only testing the implementation.
         local a = Set:new()
 
-        local t1 = setmetatable({1}, CardinalEquality)
-        local t2 = setmetatable({2, 2}, CardinalEquality)
-        local t3 = setmetatable({3, 3, 3}, CardinalEquality)
+        local t1 = setmetatable({1}, CompTable)
+        local t2 = setmetatable({2, 2}, CompTable)
+        local t3 = setmetatable({3, 3, 3}, CompTable)
 
         a:add{t1, t2, t2, t3, t3, t3}
         local t = {t1, t2, t3}
@@ -856,7 +916,7 @@ TestBootstrap = {}
         local b = Set:new{t1, t2, t3}
         lu.assertItemsEquals(a:totable(), t)
         lu.assertItemsEquals(a, b)
-        lu.assertTrue(a:__eq(b))
+        lu.assertTrue(a == b)
         lu.assertEquals(#a, 3)
 
         -- Test for large-ish numbers of items.
@@ -877,11 +937,12 @@ TestBootstrap = {}
         lu.assertEquals(#a, 100)
     end
 
+
     -- Now that are sure table sets can be created, it's time to test
     -- iteration, membership, counting, subsets and equalities for such sets.
 
     --- Tests whether iterating over sets of tables works.
-    function TestBootstrap.TestSetMembersTable()
+    function TestBootstrap.TestSetMemsTable()
         local a = Set:new()
         local t = {}
         a:add{{1}, {2}, {3}}
@@ -900,8 +961,9 @@ TestBootstrap = {}
         lu.assertItemsEquals(a:totable(), u)
     end
 
+
     --- Tests whether membership determination works.
-    function TestBootstrap.TestSetHasMemberTable()
+    function TestBootstrap.TestSetHasTable()
         local a = Set:new()
         local t = {{1}, {2}, {3}}
         a:add(t)
@@ -910,12 +972,12 @@ TestBootstrap = {}
         for _, k in ipairs{{4}, {5}} do lu.assertFalse(a:has(k)) end
     end
 
+
     --- Tests counting.
     function TestBootstrap.TestSetLenTable()
         -- Let's do something more complicated.
         local a = Set:new()
         a:add{{1}, {2}, {3}}
-        lu.assertEquals(a:__len(), 3)
         lu.assertEquals(#a, 3)
 
         -- Let's check that it counts correctly for large-ish numbers.
@@ -923,65 +985,55 @@ TestBootstrap = {}
         local t = {}
         for i = 1, 1000 do t[i] = {i} end
         a:add(t)
-        lu.assertEquals(a:__len(), 1000)
         lu.assertEquals(#a, 1000)
     end
 
+
     --- Tests whether subsets are correctly identified.
-    function TestBootstrap.TestSetLeTable()
+    function TestBootstrap.TestSetMtLeTable()
         local a = Set:new()
         local b = Set:new()
 
-        lu.assertTrue(a:__le(b))
-        lu.assertTrue(b:__le(a))
         lu.assertTrue(a <= b)
         lu.assertTrue(b <= a)
 
         for i = 1, 10 do
-            local t = setmetatable({}, CardinalEquality)
+            local t = setmetatable({}, CompTable)
             for j = 1, i do t[j] = j end
             a:add{t}
-            lu.assertTrue(b:__le(a))
-            lu.assertFalse(a:__le(b))
             lu.assertTrue(b <= a)
             lu.assertFalse(a <= b)
         end
 
         for i = 1, 9 do
-            local t = setmetatable({}, CardinalEquality)
+            local t = setmetatable({}, CompTable)
             for j = 1, i do t[j] = j end
             b:add{t}
-            lu.assertTrue(b:__le(a))
-            lu.assertFalse(a:__le(b))
             lu.assertTrue(b <= a)
             lu.assertFalse(a <= b)
         end
 
-        local t = setmetatable({}, CardinalEquality)
+        local t = setmetatable({}, CompTable)
         b:add{t}
 
-        lu.assertFalse(b:__le(a))
         lu.assertFalse(b <= a)
     end
 
+
     --- Tests equality.
-    function TestBootstrap.TestSetEqTable()
+    function TestBootstrap.TestSetMtEqTable()
         local a = Set:new()
         local b = Set:new()
 
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
         lu.assertFalse(b ~= a)
 
         for i = 1, 10 do
-            local t = setmetatable({}, CardinalEquality)
+            local t = setmetatable({}, CompTable)
             for j = 1, i do t[j] = j end
             a:add{t}
-            lu.assertFalse(b:__eq(a))
-            lu.assertFalse(a:__eq(b))
             lu.assertFalse(b == a)
             lu.assertFalse(a == b)
             lu.assertTrue(b ~= a)
@@ -989,28 +1041,25 @@ TestBootstrap = {}
         end
 
         for i = 1, 9 do
-            local t = setmetatable({}, CardinalEquality)
+            local t = setmetatable({}, CompTable)
             for j = 1, i do t[j] = j end
             b:add{t}
-            lu.assertFalse(b:__eq(a))
-            lu.assertFalse(a:__eq(b))
             lu.assertFalse(b == a)
             lu.assertFalse(a == b)
             lu.assertTrue(b ~= a)
             lu.assertTrue(a ~= b)
         end
 
-        local t = setmetatable({}, CardinalEquality)
+        local t = setmetatable({}, CompTable)
         for j = 1, 10 do t[j] = j end
         b:add{t}
 
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
         lu.assertFalse(b ~= a)
     end
+
 
     -- At this point, I can be sure that fundamental operations work.
 
@@ -1030,9 +1079,9 @@ TestBootstrap = {}
 
         -- Test whether items are added only once
         -- Still only testing the implementation.
-        local t1 = setmetatable({1}, CardinalEquality)
-        local t2 = setmetatable({2, 2}, CardinalEquality)
-        local t3 = setmetatable({3, 3, 3}, CardinalEquality)
+        local t1 = setmetatable({1}, CompTable)
+        local t2 = setmetatable({2, 2}, CompTable)
+        local t3 = setmetatable({3, 3, 3}, CompTable)
         local a = Set:new{t1, t2, t2, t3, t3, t3}
         local t = {t1, t2, t3}
         lu.assertEquals(a._tab, t)
@@ -1041,7 +1090,7 @@ TestBootstrap = {}
         local b = Set:new{t1, t2, t3}
         lu.assertItemsEquals(a:totable(), t)
         lu.assertItemsEquals(a, b)
-        lu.assertTrue(a:__eq(b))
+        lu.assertTrue(a == b)
         lu.assertEquals(#a, 3)
 
         -- Test for large-ish numbers of items.
@@ -1054,6 +1103,48 @@ TestBootstrap = {}
         lu.assertItemsEquals(a:totable(), t)
         lu.assertEquals(#a, 100)
     end
+    
+    --- Tests call interface.
+    function TestBootstrap.TestSetMtCallTables ()
+        -- Test whether this confuses `new`.
+        -- Again, I'm testing the implementation only right now.
+        local a = Set{{1}}
+        local t = {{1}}
+        lu.assertEquals(a._tab, t)
+
+        -- Test whether items are added.
+        -- Again, I'm testing the implementation only right now.
+        local a = Set{{1}, {2}, {3}}
+        local t = {{1}, {2}, {3}}
+        lu.assertEquals(a._tab, t)
+
+        -- Test whether items are added only once
+        -- Still only testing the implementation.
+        local t1 = setmetatable({1}, CompTable)
+        local t2 = setmetatable({2, 2}, CompTable)
+        local t3 = setmetatable({3, 3, 3}, CompTable)
+        local a = Set{t1, t2, t2, t3, t3, t3}
+        local t = {t1, t2, t3}
+        lu.assertEquals(a._tab, t)
+
+        -- Let's test behaviour.
+        local b = Set{t1, t2, t3}
+        lu.assertItemsEquals(a:totable(), t)
+        lu.assertItemsEquals(a, b)
+        lu.assertTrue(a == b)
+        lu.assertEquals(#a, 3)
+
+        -- Test for large-ish numbers of items.
+        local t = {}
+        for i = 1, 100 do t[i] = {i} end
+        local a = Set(t)
+        lu.assertEquals(a._tab, t)
+
+        -- Let's test behaviour.
+        lu.assertItemsEquals(a:totable(), t)
+        lu.assertEquals(#a, 100)
+    end
+
 
     -- I'm done with testing the foundations for sets of tables.
     -- Now I need to do the same thing for sets of sets; even though
@@ -1092,7 +1183,7 @@ TestBootstrap = {}
         local b = Set:new{s1, s2, s3}
         lu.assertItemsEquals(a:totable(false), t)
         lu.assertItemsEquals(a, b)
-        lu.assertTrue(a:__eq(b))
+        lu.assertTrue(a == b)
         lu.assertEquals(#a, 3)
 
         -- Test for large-ish numbers of items.
@@ -1113,11 +1204,12 @@ TestBootstrap = {}
         lu.assertEquals(#a, 100)
     end
 
+
     -- Now that are sure sets of sets can be created, it's time to test
     -- iteration, membership, counting, subsets and equalities for such sets.
 
     --- Tests whether iterating over sets of tables works.
-    function TestBootstrap.TestSetMembersSet()
+    function TestBootstrap.TestSetMemsSet()
         local a = Set:new()
         local t = {}
         a:add{Set:new{1}, Set:new{2}, Set:new{3}}
@@ -1137,8 +1229,9 @@ TestBootstrap = {}
         lu.assertItemsEquals(a:totable(false), u)
     end
 
+
     --- Tests whether membership determination works.
-    function TestBootstrap.TestSetHasMemberSet()
+    function TestBootstrap.TestSetHasSet()
         local a = Set:new()
         local t = {Set:new{1}, Set:new{2}, Set:new{3}}
         a:add(t)
@@ -1149,12 +1242,12 @@ TestBootstrap = {}
         end
     end
 
+
     --- Tests counting.
-    function TestBootstrap.TestSetLenSet()
+    function TestBootstrap.TestSetMtLenSet()
         -- Let's do something more complicated.
         local a = Set:new()
         a:add{Set:new{1}, Set:new{2}, Set:new{3}}
-        lu.assertEquals(a:__len(), 3)
         lu.assertEquals(#a, 3)
 
         -- Let's check that it counts correctly for large-ish numbers.
@@ -1162,46 +1255,39 @@ TestBootstrap = {}
         local t = {}
         for i = 1, 1000 do t[i] = Set:new{i} end
         a:add(t)
-        lu.assertEquals(a:__len(), 1000)
         lu.assertEquals(#a, 1000)
     end
 
+
     --- Tests whether subsets are correctly identified.
-    function TestBootstrap.TestSetLeSet()
+    function TestBootstrap.TestSetMtLeSet()
         local a = Set:new()
         local b = Set:new()
 
         for i = 1, 10 do
             for j = 1, i do a:add{Set:new{j}} end
-            lu.assertTrue(b:__le(a))
-            lu.assertFalse(a:__le(b))
             lu.assertTrue(b <= a)
             lu.assertFalse(a <= b)
         end
 
         for i = 1, 9 do
             for j = 1, i do b:add{Set:new{j}} end
-            lu.assertTrue(b:__le(a))
-            lu.assertFalse(a:__le(b))
             lu.assertTrue(b <= a)
             lu.assertFalse(a <= b)
         end
 
         b:add{Set:new()}
-
-        lu.assertFalse(b:__le(a))
         lu.assertFalse(b <= a)
     end
 
+
     --- Tests equality.
-    function TestBootstrap.TestSetEqSet()
+    function TestBootstrap.TestSetMtEqSet()
         local a = Set:new()
         local b = Set:new()
 
         for i = 1, 10 do
             for j = 1, i do a:add{Set:new{j}} end
-            lu.assertFalse(b:__eq(a))
-            lu.assertFalse(a:__eq(b))
             lu.assertFalse(b == a)
             lu.assertFalse(a == b)
             lu.assertTrue(b ~= a)
@@ -1210,8 +1296,6 @@ TestBootstrap = {}
 
         for i = 1, 9 do
             for j = 1, i do b:add{Set:new{j}} end
-            lu.assertFalse(b:__eq(a))
-            lu.assertFalse(a:__eq(b))
             lu.assertFalse(b == a)
             lu.assertFalse(a == b)
             lu.assertTrue(b ~= a)
@@ -1219,14 +1303,12 @@ TestBootstrap = {}
         end
 
         b:add{Set:new{10}}
-
-        lu.assertTrue(a:__eq(b))
-        lu.assertTrue(b:__eq(a))
         lu.assertTrue(a == b)
         lu.assertTrue(b == a)
         lu.assertFalse(a ~= b)
         lu.assertFalse(b ~= a)
     end
+
 
     -- At this point, I can be sure that fundamental operations work.
 
@@ -1257,7 +1339,7 @@ TestBootstrap = {}
         local b = Set:new{s1, s2, s3}
         lu.assertItemsEquals(a:totable(false), t)
         lu.assertItemsEquals(a, b)
-        lu.assertTrue(a:__eq(b))
+        lu.assertTrue(a == b)
         lu.assertEquals(#a, 3)
 
         -- Test for large-ish numbers of items.
@@ -1270,6 +1352,48 @@ TestBootstrap = {}
         lu.assertItemsEquals(a:totable(false), t)
         lu.assertEquals(#a, 100)
     end
+
+    --- Tests call interface.
+    function TestBootstrap.TestSetMtCallSets ()
+        -- Test whether this confuses `add`.
+        -- Again, I'm testing the implementation only right now.
+        local a = Set{Set{1}}
+        local t = {Set{1}}
+        lu.assertEquals(a._tab, t)
+
+        -- Test whether items are added.
+        -- Again, I'm testing the implementation only right now.
+        local a = Set{Set{1}, Set{2}, Set{3}}
+        local t = {Set{1}, Set{2}, Set{3}}
+        lu.assertEquals(a._tab, t)
+
+        -- Test whether items are added only once
+        -- Still only testing the implementation.
+        local s1 = Set{1}
+        local s2 = Set{2}
+        local s3 = Set{3}
+        local a = Set{s1, s2, s2, s3, s3, s3}
+        local t = {s1, s2, s3}
+        lu.assertEquals(a._tab, t)
+
+        -- Let's test behaviour.
+        local b = Set{s1, s2, s3}
+        lu.assertItemsEquals(a:totable(false), t)
+        lu.assertItemsEquals(a, b)
+        lu.assertTrue(a == b)
+        lu.assertEquals(#a, 3)
+
+        -- Test for large-ish numbers of items.
+        local t = {}
+        for i = 1, 100 do t[i] = Set:new{i} end
+        local a = Set:new(t)
+        lu.assertEquals(a._tab, t)
+
+        -- Let's test behaviour.
+        lu.assertItemsEquals(a:totable(false), t)
+        lu.assertEquals(#a, 100)
+    end
+
 
     -- I'm done with testing the foundations for sets of tables.
     -- Now I need to do the same thing for sets of all three
@@ -1295,12 +1419,13 @@ TestBootstrap = {}
         lu.assertItemsEquals(a, b)
     end
 
+
     -- Now that are sure sets of arbitrary elements can be created, it's time
     -- to test iteration, membership, counting, subsets and equalities for
     -- such sets.
 
     --- Tests whether iterating over sets of arbitrary elements works.
-    function TestBootstrap.TestSetMembers()
+    function TestBootstrap.TestSetMems()
         local m = {Set:new{1}, false, 1, Set:new{2}, {1}, {2}, 'a'}
         local a = Set:new()
         local t = {}
@@ -1310,8 +1435,9 @@ TestBootstrap = {}
         lu.assertItemsEquals(a:totable(false), m)
     end
 
+
     --- Tests whether membership determination works.
-    function TestBootstrap.TestSetHasMember()
+    function TestBootstrap.TestSetHas()
         local m = {Set:new{1}, false, 1, Set:new{2}, {1}, {2}, 'a'}
         local a = Set:new()
         a:add(m)
@@ -1322,17 +1448,18 @@ TestBootstrap = {}
         end
     end
 
+
     --- Tests counting.
-    function TestBootstrap.TestSetLen()
+    function TestBootstrap.TestSetMtLen()
         local m = {Set:new{1}, false, 1, Set:new{2}, {1}, {2}, 'a'}
         local a = Set:new()
         a:add(m)
-        lu.assertEquals(a:__len(), 7)
         lu.assertEquals(#a, 7)
     end
 
+
     --- Tests whether subsets are correctly identified.
-    function TestBootstrap.TestSetLe()
+    function TestBootstrap.TestSetMtLe()
         local m = {Set:new{1}, false, 1, Set:new{2}, 'x', 'a'}
         local n = {Set:new{1}, false, 1}
         local o = {Set:new{2}, 'x', 'a'}
@@ -1343,28 +1470,20 @@ TestBootstrap = {}
         b:add(n)
         c:add(o)
 
-        lu.assertTrue(a:__le(a))
-        lu.assertTrue(b:__le(b))
-        lu.assertTrue(c:__le(c))
         lu.assertTrue(a <= a)
         lu.assertTrue(b <= b)
         lu.assertTrue(c <= c)
-        lu.assertTrue(b:__le(a))
-        lu.assertTrue(c:__le(a))
         lu.assertTrue(b <= a)
         lu.assertTrue(c <= a)
-        lu.assertFalse(a:__le(b))
-        lu.assertFalse(a:__le(c))
         lu.assertFalse(a <= b)
         lu.assertFalse(a <= c)
-        lu.assertFalse(b:__le(c))
-        lu.assertFalse(c:__le(b))
         lu.assertFalse(b <= c)
         lu.assertFalse(c <= b)
     end
 
+
     --- Tests equality.
-    function TestBootstrap.TestSetEq()
+    function TestBootstrap.TestSetMtEq()
         local m = {Set:new{1}, false, 1, Set:new{2}, {1}, {2}, 'a'}
         local n = {Set:new{1}, false, 1}
         local a = Set:new()
@@ -1373,11 +1492,6 @@ TestBootstrap = {}
         a:add(m)
         b:add(n)
         c:add(n)
-        lu.assertTrue(a:__eq(a))
-        lu.assertTrue(b:__eq(b))
-        lu.assertTrue(c:__eq(c))
-        lu.assertTrue(c:__eq(b))
-        lu.assertTrue(b:__eq(c))
         lu.assertTrue(a == a)
         lu.assertTrue(b == b)
         lu.assertTrue(c == c)
@@ -1392,15 +1506,12 @@ TestBootstrap = {}
         lu.assertFalse(c ~= c)
         lu.assertFalse(b ~= c)
         lu.assertFalse(c ~= b)
-        lu.assertFalse(a:__eq(b))
-        lu.assertFalse(b:__eq(a))
-        lu.assertFalse(a:__eq(c))
-        lu.assertFalse(c:__eq(a))
         lu.assertFalse(a == b)
         lu.assertFalse(b == a)
         lu.assertFalse(c == a)
         lu.assertFalse(a == c)
     end
+
 
     -- At this point, I can be reasonably sure that the fundamental
     -- operations work.
@@ -1426,9 +1537,45 @@ TestBootstrap = {}
 
         -- Just more tests.
         for k, v in pairs(tables) do
-            local s = Set:new(v)
-            --lu.assertEquals(#v, #s)
-            lu.assertItemsEquals(v, s:totable())
+            -- Something goes wrong for tables of booleans;
+            -- but with the tables, not the sets.
+            local t = k:sub(1, 3)
+            if t == 'num' or t == 'str' then
+                local s = Set:new(v)
+                lu.assertEquals(#s, #v)
+                lu.assertItemsEquals(v, s:totable())
+            end
+        end
+    end
+
+    --- Tests call interface.
+    function TestBootstrap.TestSetMtCall ()
+        local a = Set{Set{1}, false, false, 1, Set{2}, {1}, {2}, 'a', 'a'}
+
+        -- Test the implementation.
+        lu.assertTrue(simple_has_all(a, {false, 1, 'a'}))
+        lu.assertTrue(simple_has_only(a, {false, 1, 'a'}))
+        lu.assertEquals(a._val.len, 3)
+        lu.assertEquals(a._tab, {Set{1}, Set{2}, {1}, {2}})
+
+        -- Let's test behaviour.
+        lu.assertEquals(#a, 7)
+        local t = {Set{1}, false, 1, Set{2}, {1}, {2}, 'a'}
+        lu.assertItemsEquals(a:totable(false), t)
+        local b = Set()
+        b:add(t)
+        lu.assertItemsEquals(a, b)
+
+        -- Just more tests.
+        for k, v in pairs(tables) do
+            -- Something goes wrong for tables of booleans;
+            -- but with the tables, not the sets.
+            local t = k:sub(1, 3)
+            if t == 'num' or t == 'str' then
+                local s = Set(v)
+                lu.assertEquals(#s, #v)
+                lu.assertItemsEquals(v, s:totable())
+            end
         end
     end
 
@@ -1436,20 +1583,6 @@ TestBootstrap = {}
 -- Now I can be reasonably sure that the operations needed to determine the
 -- identity and the contents of sets work and can proceed with the remaining
 -- tests.
-
-
---- More testing materials
--- @section tests
-
----
--- Sets for testing
--- At this point, it's reasonably sure that set creation works.
--- So let's create some sets for later.
---
--- @table sets
-sets = {}
-for k, v in pairs(tables) do sets[k] = Set:new(v) end
-
 
 --- Test of core machinery
 --
@@ -1465,7 +1598,7 @@ for k, v in pairs(tables) do sets[k] = Set:new(v) end
 -- `copy` and `set.copy` are used by the subsequent tests
 -- by some operations, so they need to be tested first.
 --
--- @table TestCopy
+-- @table TestCopy Tests for `copy` and `set.copy`.
 TestCopy = {}
 
     --- Test copying non-sets.
@@ -1479,30 +1612,30 @@ TestCopy = {}
         -- Test a nested table.
         local t = {1, 2, 3, {1, 2, 3, {4, 5, 6}}}
         local c = properset.copy(t)
-        lu.assertItemsEquals(t, c)
-
-        -- Test a self-referential table.
-        local t = setmetatable({1, 2, 3}, TableEquality)
-        t.t = t
-        local c = properset.copy(t)
         lu.assertItemsEquals(c, t)
 
+        -- Test a self-referential table.
+        local t = setmetatable({1, 2, 3}, CompTable)
+        t.t = t
+        local c = properset.copy(t)
+        lu.assertEquals(c, t)
+
         -- Test a table that has another table as key.
-        local t = setmetatable({1, 2, 3}, TableEquality)
+        local t = setmetatable({1, 2, 3}, CompTable)
         local u = {1, 2, 3, {4, 5, 6}}
         u[t] = 7
         local c = properset.copy(u)
         lu.assertItemsEquals(c, u)
 
         -- Test a table that overrides `__pairs`.
-        local t = setmetatable({1, 2, 3}, TableNilIterator)
+        local t = setmetatable({1, 2, 3}, Single)
         local c = properset.copy(t)
         lu.assertItemsEquals(c, t)
 
         -- Test a table that does all of this.
         local t = setmetatable({1, 2, 3, {4, 5}},
-            {__eq = TableEquality.__eq,
-             __pairs = TableNilIterator.__pairs})
+            {__eq = CompTable.__eq,
+             __pairs = Single.__pairs})
         local u = {1, 2, 3, {4, 5, 6}}
         t[u] = {1, 2, 3, {4, 5}}
         t.t = t
@@ -1523,7 +1656,7 @@ TestCopy = {}
         end
 
         -- Test a nested set.
-        local a = Set:new{1, Set:new{2}, Set:new{3}}
+        local a = Set{1, Set{2}, Set{3}}
         local c = a:copy()
         lu.assertItemsEquals(a, c)
     end
@@ -1541,16 +1674,15 @@ TestCopy = {}
         end
 
         -- Test a nested set.
-        local a = Set:new{1, Set:new{2}, Set:new{3}}
+        local a = Set{1, Set{2}, Set{3}}
         local c = properset.copy(a)
-        lu.assertItemsEquals(a, c)
+        lu.assertItemsEquals(c, a)
     end
 
 
 ---
--- Conversion functions, as it happens, do not require fancy
--- machinery (e.g., `copy` or `Set.copy`); and they are useful
--- in testing because they allow to convert sets into other types.
+-- Conversion functions are useful in testing because they
+-- allow to convert sets into other types.
 --
 -- @table TestConversion Make sure that conversion functions work.
 TestConversion = {}
@@ -1567,13 +1699,13 @@ TestConversion = {}
         end
 
         -- Let's just check that recursive conversion works.
-        local a = Set:new()
+        local a = Set()
         local t = {}
         for i = 1, 100, 10 do
-            local b = Set:new{i}
+            local b = Set{i}
             local u = {i}
             for j = 1, 9 do
-                b = Set:new{j+i, b}
+                b = Set{j+i, b}
                 u = {j+i, u}
             end
             a:add{b}
@@ -1585,26 +1717,26 @@ TestConversion = {}
     --- Test conversion to strings.
     --
     -- It's good to be sure that string conversion shows the truth.
-    function TestConversion.TestSetToString()
+    function TestConversion.TestSetMtToString()
         -- Unfortunately, this tests sometimes fails only because
         -- the order of the elements in the set isn't stable.
         for k, v in pairs(sets) do
             if k:sub(1, 3) == 'num' then
-                lu.assertItemsEquals(tables[k], strtotable(tostring(v)))
+                lu.assertItemsEquals(setstr_to_table(tostring(v)), tables[k])
             end
         end
 
         -- Let's just check that recursive conversion works.
-        local a = Set:new()
+        local a = Set()
         for i = 1, 991, 10 do
-            local b = Set:new{i}
+            local b = Set{i}
             for j = 1, 9 do
-                b = Set:new{j+i, b:copy()}
+                b = Set{j+i, b:copy()}
             end
             a:add{b}
         end
-        local t = strtotable(tostring(a))
-        lu.assertItemsEquals(tables.num_e3_0, t)
+        local t = setstr_to_table(tostring(a))
+        lu.assertItemsEquals(t, tables.num_e3_0)
     end
 
 
@@ -1612,75 +1744,338 @@ TestConversion = {}
 -- Some functions are just shortcuts for converting a set to a table and
 -- then calling a function from `table`. However `unpack` is an important
 -- way to check the contents of a set; particularly if `__tostring`
--- doesn't suffice so these tests go first.
+-- doesn't suffice. So these tests go first.
 --
--- @table Tests for aable-ish functions
+-- @table Tests for table-ish functions
 TestTable = {}
 
--- core utility methods (totable, unpack)
--- remaining iterators
+    --- Test if unpacking works.
+    function TestTable.TestSetUnpack()
+        for k, v in pairs(sets) do
+            if #v < 5 then
+                local tab_1, tab_2, tab_3, tab_4 = table.unpack(tables[k])
+                local set_1, set_2, set_3, set_4 = v:unpack()
+                local tab = {tab_1, tab_2, tab_3, tab_4}
+                local set = {set_1, set_2, set_3, set_4}
+                lu.assertItemsEquals(set, tab)
+            end
+        end
+    end
+
+    --- Test if concantenating works.
+    function TestTable.TestSetConcat()
+        -- Let's test with a single item.
+        -- Because sets can't guarantee order, that's the only
+        -- way to directly compare strings.
+        local t = table.concat({1})
+        local s = Set{1}:concat()
+        lu.assertEquals(s, t)
+
+        -- Test with a seperator.
+        local t = table.concat({1}, ', ')
+        local s = Set{1}:concat(', ')
+        lu.assertEquals(s, t)
+
+        -- Test for longer sets.
+        for k, v in pairs(sets) do
+            if k:sub(1, 3) == 'str' then
+                local tab = str_split(table.concat(tables[k]))
+                local set = str_split(v:concat())
+                lu.assertItemsEquals(set, tab)
+            end
+        end
+    end
+
+    --- Test if sorting works.
+    --
+    -- @todo Make sure that sets are less ordered than they are.
+    -- @todo Test if using a sorting function works.
+    function TestTable.TestSetSort()
+        local a = Set{1, 3, 5, 2, 4, 6, 8, 10, 5, 9, 7}
+        lu.assertItemsEquals(a:sorted(), {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+
+        for k, v in pairs(sets) do
+            local t = k:sub(1, 3)
+            if t == 'str' or t == 'num' then
+                local t = properset.copy(tables[k])
+                table.sort(t)
+                local s = v:sorted()
+                lu.assertEquals(s, t)
+            end
+        end
+    end
 
 
--- access blocking
+---
+-- It's useful to iterate over sets as if they were tables.
+-- And `set` and `delete` make use of that.
+--
+-- @table Tests for iterators.
+TestIterators = {}
 
--- boolean operations
+    --- Test `ipairs`.
+    function TestIterators.TestSetMtIpairs()
+        for k, v in pairs(sets) do
+            local t = {}
+            for k, v in ipairs(v) do t[k] = v end
+            lu.assertItemsEquals(t, tables[k])
+        end
+    end
+
+    --- Test `pairs`.
+    function TestIterators.TestSetMtPairs()
+        for k, v in pairs(sets) do
+            local t = {}
+            for k, v in pairs(v) do t[k] = v end
+            lu.assertItemsEquals(t, tables[k])
+        end
+    end
+
+
+---
+-- Tests are important in testing, so let's test those.
+--
+-- @table Tests for boolean relations.
+TestBooleans = {}
+
+    --- Test '<'.
+    function TestBooleans.TestSetMtLt()
+        -- Start off easy.
+        local a = Set{1}
+        local b = Set()
+        lu.assertTrue(b < a)
+        lu.assertFalse(a < b)
+
+        -- Complicate things, with numbers.
+        for i = 2, 10 do
+            a:add{i}
+            lu.assertTrue(b < a)
+            lu.assertFalse(a < b)
+        end
+
+        for i = 1, 9 do
+            b:add{i}
+            lu.assertTrue(b < a)
+            lu.assertFalse(a < b)
+        end
+
+        b:add{10}        
+        lu.assertFalse(a < b)
+        lu.assertFalse(b < a)
+
+        -- Test nil.
+        local a = Set()
+        local b = Set()
+
+        a:add{nil}
+        lu.assertFalse(b < a)
+        lu.assertFalse(a < b)
+
+        -- Test booleans.
+        local a = Set()
+        local b = Set()
+
+        a:add{false}
+        lu.assertTrue(b < a)
+        lu.assertFalse(a < b)
+
+        b:add{false}
+        lu.assertFalse(b < a)
+        lu.assertFalse(a < b)
+
+        b:add{true}
+        lu.assertTrue(a < b)
+        lu.assertFalse(b < a)
+
+        -- Test strings.
+        local a = Set()
+        local b = Set()
+
+        for _, k in pairs{'a', 'b', 'c'} do
+            a:add{k}
+            lu.assertTrue(b < a)
+            lu.assertFalse(a < b)
+        end
+
+        for _, k in pairs{'a', 'b'} do
+            b:add{k}
+            lu.assertTrue(b < a)
+            lu.assertFalse(a < b)
+        end
+
+        b:add{'z'}
+        lu.assertFalse(b < a)
+        lu.assertFalse(a < b)
+
+        -- Test a combination of all of the above.
+        local a = Set()
+        local b = Set()
+        local c = Set()
+        a:add{1, 2, 'x', false, 3, true, nil, nil}
+        b:add{1, 'x', true}
+        c:add{2, false}
+
+        lu.assertTrue(b < a)
+        lu.assertTrue(c < a)
+        lu.assertFalse(a < b)
+        lu.assertFalse(a < c)
+        lu.assertFalse(b < c)
+        lu.assertFalse(c < b)
+
+        -- Now for tables.
+        local a = Set()
+        local b = Set()
+
+        for i = 1, 10 do
+            local t = setmetatable({}, CompTable)
+            for j = 1, i do t[j] = j end
+            a:add{t}
+            lu.assertTrue(b < a)
+            lu.assertFalse(a < b)
+        end
+
+        for i = 1, 9 do
+            local t = setmetatable({}, CompTable)
+            for j = 1, i do t[j] = j end
+            b:add{t}
+            lu.assertTrue(b < a)
+            lu.assertFalse(a < b)
+        end
+
+        local t = setmetatable({}, CompTable)
+        for j = 1, 10 do t[j] = j end
+        b:add{t}
+        lu.assertFalse(b < a)
+        lu.assertFalse(a < b)
+
+        -- For sets.
+        local a = Set()
+        local b = Set()
+
+        for i = 1, 10 do
+            for j = 1, i do a:add{Set{j}} end
+            lu.assertTrue(b < a)
+            lu.assertFalse(a < b)
+        end
+
+        for i = 1, 9 do
+            for j = 1, i do b:add{Set{j}} end
+            lu.assertTrue(b < a)
+            lu.assertFalse(a < b)
+        end
+
+        for j = 1, 10 do b:add{Set{j}} end
+        lu.assertFalse(b < a)
+        lu.assertFalse(a < b)
+        
+        -- For mixes.
+        local m = {Set{1}, false, 1, Set{2}, 'x', 'a'}
+        local n = {Set{1}, false, 1}
+        local o = {Set{2}, 'x', 'a'}
+        local a = Set()
+        local b = Set()
+        local c = Set()
+        a:add(m)
+        b:add(n)
+        c:add(o)
+
+        lu.assertTrue(b < a)
+        lu.assertTrue(c < a)
+        lu.assertFalse(a < a)
+        lu.assertFalse(b < b)
+        lu.assertFalse(c < c)
+        lu.assertFalse(a < b)
+        lu.assertFalse(a < c)
+        lu.assertFalse(b < c)
+        lu.assertFalse(c < b)
+    end
+
+
+---
+-- I also need to test basic errors.
+-- That is, whether the above functions throw the errors they should throw.
+-- 
+-- These are:
+-- 
+-- * Set.new should error if a set contains itself.
+-- * Any attempt to access set members should error.
+--
+-- @table TestCoreErrors Tests if all that should bark barks.
+TestCoreErrors = {}
+
+    --- Tests whether set barks at adding a set to itself.
+    function TestCoreErrors.TestSetAddToItself ()
+        local a = Set()
+        lu.assertErrorMsgMatches('.*sets cannot be members of themselves%.',
+            function() a:add{a} end)
+    end
+    
+    --- Tests whether modifications of the set are blocked.
+    function TestCoreErrors.TestSetNewIndex ()
+        local a = Set()
+        lu.assertErrorMsgMatches(".*sets can only be modified using 'add' and 'delete'%.",
+            function() a[1] = 1 end)
+        lu.assertErrorMsgMatches(".*sets can only be modified using 'add' and 'delete'%.",
+            function() a.b = 1 end)
+        lu.assertErrorMsgMatches(".*sets can only be modified using 'add' and 'delete'%.",
+            function() a['a b'] = 1 end)
+    end
+
+
+---
+-- Finally test set manipulation.
+-- @table TestManipulation Tests functions to manipulate sets.
+-- TestManipulation = {}
+
+
+-- ACTUAL -> EXPECTED
+
 -- set manipulation
 
 -- arithmetics
--- remaining methods
--- remaining functions
+-- their errors
 
----
--- @table TestCoreUtilities Make sure that fundamental utility functions work.
---
--- These operations are:
---
--- *copy
---
--- All other operations on set are built on these.
+-- remaining methods
+-- their errors
+
+-- n-ary arithmetics
+-- their errors
+
+
+-- remaining functions
+-- their errors
+
+-- repeat the whole thing for immutable sets...
+
 
 
 -- MARK: old tests below:
 
 
 function TestAccess ()
-    local a = Set:new(tables.num_e1_1)
+    local a = Set(tables.num_e1_1)
     lu.assertError(function () a[1] = 2 end)
     lu.assertError(function () a['b'] = 2 end)
 end
 
 
-function TestIterationIpairs()
-    local a = Set:new(tables.num_e1_1)
-    local b = {}
-    for _, v in ipairs(a) do table.insert(b, v) end
-    lu.assertItemsEquals(b, tables.num_e1_1)
-end
-
-function TestIterationPairs()
-    local a = Set:new(tables.num_e1_1)
-    local b = {}
-    for _, v in pairs(a) do table.insert(b, v) end
-    lu.assertItemsEquals(b, tables.num_e1_1)
-end
-
 function TestMap()
-    local a = Set:new{1, 2, 3}
-    local b = Set:new{2, 3, 4}
+    local a = Set{1, 2, 3}
+    local b = Set{2, 3, 4}
     local add = function(i) return i + 1 end
     lu.assertEquals(a:map(add), b)
 end
 
 function TestFilter()
-    local a = Set:new{1, 2, 3, 4}
-    local b = Set:new{2, 4}
+    local a = Set{1, 2, 3, 4}
+    local b = Set{2, 4}
     local even = function(i) return i % 2 == 0 end
     lu.assertEquals(a:filter(even), b)
 end
 
 
 function TestDelete()
-    local a = Set:new{1, 2, 3}
+    local a = Set{1, 2, 3}
     a:delete{2, 3}
     local b = {}
     for v in a:mems() do table.insert(b, v) end
@@ -1688,38 +2083,12 @@ function TestDelete()
 end
 
 
-function TestSuperset()
-    local a = Set:new{1, 2}
-    local b = Set:new{1}
-    local c = Set:new{1, 2}
-    lu.assertTrue(a:__ge(b))
-    lu.assertFalse(b:__ge(a))
-    lu.assertTrue(a:__ge(c))
-end
-
-function TestStrictSubset()
-    local a = Set:new{1, 2}
-    local b = Set:new{1}
-    local c = Set:new{1, 2}
-    lu.assertTrue(b:__lt(a))
-    lu.assertFalse(a:__lt(b))
-    lu.assertFalse(c:__lt(a))
-end
-
-function TestStrictSuperset()
-    local a = Set:new{1, 2}
-    local b = Set:new{1}
-    local c = Set:new{1, 2}
-    lu.assertTrue(a:__gt(b))
-    lu.assertFalse(b:__gt(a))
-    lu.assertFalse(a:__gt(c))
-end
 
 
 function TestDisjoint()
-    local a = Set:new{1, 2}
-    local b = Set:new{2, 3}
-    local c = Set:new{3, 4}
+    local a = Set{1, 2}
+    local b = Set{2, 3}
+    local c = Set{3, 4}
     lu.assertFalse(a:is_disjoint_from(b))
     lu.assertFalse(b:is_disjoint_from(c))
     lu.assertFalse(b:is_disjoint_from(a))
@@ -1729,145 +2098,129 @@ function TestDisjoint()
 end
 
 function TestComplement()
-    local a = Set:new{1, 2}
-    local b = Set:new{2}
-    local c = Set:new{1}
+    local a = Set{1, 2}
+    local b = Set{2}
+    local c = Set{1}
     lu.assertEquals(a - b, c)
 end
 
 function TestUnion()
-    local a = Set:new{1, 2}
-    local b = Set:new{3}
-    local c = Set:new{1, 2, 3}
+    local a = Set{1, 2}
+    local b = Set{3}
+    local c = Set{1, 2, 3}
     lu.assertEquals(a + b, c)
 end
 
 function TestIntersection()
-    local a = Set:new{1}
-    local b = Set:new{1, 2}
-    local c = Set:new{2}
-    lu.assertEquals(a:intersection(b), Set:new{1})
-    lu.assertEquals(a:intersection(c), Set:new())
-    lu.assertEquals(b:intersection(c), Set:new{2})
-    lu.assertEquals(b:intersection(a), Set:new{1})
-    lu.assertEquals(c:intersection(a), Set:new())
-    lu.assertEquals(c:intersection(b), Set:new{2})
+    local a = Set{1}
+    local b = Set{1, 2}
+    local c = Set{2}
+    lu.assertEquals(a:intersection(b), Set{1})
+    lu.assertEquals(a:intersection(c), Set())
+    lu.assertEquals(b:intersection(c), Set{2})
+    lu.assertEquals(b:intersection(a), Set{1})
+    lu.assertEquals(c:intersection(a), Set())
+    lu.assertEquals(c:intersection(b), Set{2})
 end
 
 function TestDifference()
-    local a = Set:new{1, 2}
-    local b = Set:new{1, 3}
-    lu.assertEquals(a:difference(b), Set:new{2, 3})
+    local a = Set{1, 2}
+    local b = Set{1, 3}
+    lu.assertEquals(a:difference(b), Set{2, 3})
 end
 
 function TestPower()
-    local a = Set:new{0, 1}
-    local b = Set:new{a, Set:new{0}, Set:new{1}, emptyset}
+    local a = Set{0, 1}
+    local b = Set{a, Set{0}, Set{1}, emptyset}
     lu.assertEquals(a:power(), b)
 end
 
 function TestRank()
-    local a = Set:new{Set:new{Set:new{}}}
+    local a = Set{Set{Set{}}}
     lu.assertEquals(a:rank(), 3)
 end
 
 function TestRankN()
-    local a = Set:new{1, Set:new{2, Set:new{3, 4}, Set:new{5}}, Set:new{6}}
-    lu.assertEquals(a:of_rankn(0), Set:new{1})
-    lu.assertEquals(a:of_rankn(1), Set:new{Set:new{6}})
-    lu.assertEquals(a:of_rankn(2), Set:new{Set:new{2,
-        Set:new{3, 4}, Set:new{5}}})
+    local a = Set{1, Set{2, Set{3, 4}, Set{5}}, Set{6}}
+    lu.assertEquals(a:of_rankn(0), Set{1})
+    lu.assertEquals(a:of_rankn(1), Set{Set{6}})
+    lu.assertEquals(a:of_rankn(2), Set{Set{2,
+        Set{3, 4}, Set{5}}})
     lu.assertEquals(a:of_rankn(3), emptyset)
-    lu.assertEquals(a:of_rankn(0, true), Set:new{1, 2, 3, 4, 5, 6})
-    lu.assertEquals(a:of_rankn(1, true), Set:new{Set:new{3, 4},
-        Set:new{5}, Set:new{6}})
-    lu.assertEquals(a:of_rankn(2, true), Set:new{Set:new{2,
-        Set:new{3, 4}, Set:new{5}}})
+    lu.assertEquals(a:of_rankn(0, true), Set{1, 2, 3, 4, 5, 6})
+    lu.assertEquals(a:of_rankn(1, true), Set{Set{3, 4},
+        Set{5}, Set{6}})
+    lu.assertEquals(a:of_rankn(2, true), Set{Set{2,
+        Set{3, 4}, Set{5}}})
     lu.assertEquals(a:of_rankn(3, true), emptyset)
 
 end
 
 function TestLevelN()
-    local a = Set:new{1, Set:new{2, Set:new{3, 4}, Set:new{5}}, Set:new{6}}
-    lu.assertEquals(a:at_leveln(1), Set:new{1, Set:new{2, Set:new{3, 4},
-        Set:new{5}}, Set:new{6}})
-    lu.assertEquals(a:at_leveln(2), Set:new{2, Set:new{3, 4}, Set:new{5}, 6})
-    lu.assertEquals(a:at_leveln(3), Set:new{3, 4, 5})
+    local a = Set{1, Set{2, Set{3, 4}, Set{5}}, Set{6}}
+    lu.assertEquals(a:at_leveln(1), Set{1, Set{2, Set{3, 4},
+        Set{5}}, Set{6}})
+    lu.assertEquals(a:at_leveln(2), Set{2, Set{3, 4}, Set{5}, 6})
+    lu.assertEquals(a:at_leveln(3), Set{3, 4, 5})
     lu.assertEquals(a:at_leveln(4), emptyset)
 end
 
 function TestFlatten()
-    local a = Set:new{1, Set:new{2, Set:new{5, Set:new{6}}, 3}, 4}
+    local a = Set{1, Set{2, Set{5, Set{6}}, 3}, 4}
     local b = a:power()
-    lu.assertEquals(b:flatten(), Set:new{1, 2, 3, 4, 5, 6})
+    lu.assertEquals(b:flatten(), Set{1, 2, 3, 4, 5, 6})
 end
 
-function TestSorted()
-    local a = Set:new{1, 3, 5, 2, 4, 6, 8, 10, 5, 9, 7}
-    lu.assertItemsEquals(a:sorted(), {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
-end
 
-function TestConcatenate()
-    local a = Set:new{1, 2, 3, 4}
-    lu.assertEquals(a:concat(), '1234')
-    lu.assertEquals(a:concat(', '), '1, 2, 3, 4')
-end
 
-function TestUnpack()
-    local a = Set:new{1, 2, 3, 4}
-    local x, y, z = a:unpack()
-    lu.assertEquals(x, 1)
-    lu.assertEquals(y, 2)
-    lu.assertEquals(z, 3)
-end
 
 
 function TestNDisjoint()
-    local a = Set:new{1}
-    local b = Set:new{1, 2}
-    local c = Set:new{2}
-    local d = Set:new{3}
+    local a = Set{1}
+    local b = Set{1, 2}
+    local c = Set{2}
+    local d = Set{3}
     lu.assertFalse(properset.are_disjoint{a, b, c})
     lu.assertTrue(properset.are_disjoint{a, c, d})
 end
 
 function TestNUnion()
-    local a = Set:new{1}
-    local b = Set:new{2}
-    local c = Set:new{3}
+    local a = Set{1}
+    local b = Set{2}
+    local c = Set{3}
     local d = properset.union{a, b, c}
-    lu.assertEquals(d, Set:new{1, 2, 3})
+    lu.assertEquals(d, Set{1, 2, 3})
 end
 
 function TestNIntersection()
-    local a = Set:new{1}
-    local b = Set:new{1, 2}
-    local c = Set:new{2}
-    local d = Set:new{1, 3}
+    local a = Set{1}
+    local b = Set{1, 2}
+    local c = Set{2}
+    local d = Set{1, 3}
     lu.assertEquals(properset.intersection{a, b, c}, emptyset)
-    lu.assertEquals(properset.intersection{a, b, d}, Set:new{1})
+    lu.assertEquals(properset.intersection{a, b, d}, Set{1})
 end
 
 function TestNDifference()
-    local a = Set:new{1, 2}
-    local b = Set:new{1, 3}
-    local c = Set:new{1, 2, 3, 4}
-    lu.assertEquals(properset.difference{a, b, c}, Set:new{1, 4})
+    local a = Set{1, 2}
+    local b = Set{1, 3}
+    local c = Set{1, 2, 3, 4}
+    lu.assertEquals(properset.difference{a, b, c}, Set{1, 4})
 end
 
 
 function TestAssertSet()
-    local a = Set:new{1}
+    local a = Set{1}
     lu.assertError(function() return properset.assert_set(0) end)
     lu.assertTrue(pcall(function() return properset.assert_set(a) end))
 end
 
 function TestRankF()
     local a = 0
-    local b = Set:new{}
-    local c = Set:new{b}
-    local d = Set:new{c}
-    local e = Set:new{d}
+    local b = Set{}
+    local c = Set{b}
+    local d = Set{c}
+    local e = Set{d}
     lu.assertEquals(properset.rank(a), 0)
     lu.assertEquals(properset.rank(b), 1)
     lu.assertEquals(properset.rank(c), 2)
@@ -1880,7 +2233,7 @@ end
 
 function TestEmptySet()
     lu.assertEquals(#emptyset, 0)
-    lu.assertEquals(emptyset, Set:new())
+    lu.assertEquals(emptyset, Set())
 end
 
 

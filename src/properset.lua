@@ -1,8 +1,8 @@
 --- Handles complex sets.
 --
 -- @usage
---      > set = require 'properset'
---      > Set = set.Set
+--      > properset = require 'properset'
+--      > Set = properset.Set
 --      > a = Set{1, 2, 2, 3, 3, 3}
 --      > a
 --      {1, 2, 3}
@@ -12,6 +12,7 @@
 -- @copyright 2018 Odin Kroeger
 -- @license MIT
 -- @release 0.3-a0
+
 
 -- Boilerplate
 -- ===========
@@ -113,7 +114,7 @@ Set.mt.__index = Set
 --  populated with `elems`, if any were given.
 --
 -- @usage
---      > Set{1, 2, 3}
+--      > Set:new{1, 2, 3}
 --      {1, 2, 3}
 --      > Set{1, 2, 3}
 --      {1, 2, 3}
@@ -381,7 +382,7 @@ end
 -- `a:flatten()` and `a:of_rankn(0, true)` are equivalent.
 --
 -- @tparam number n The rank.
--- @tparam boolean desc Whether to descend into members that are sets, too.
+-- @tparam[opt=false] boolean rec Whether to recurse into members, too.
 --
 -- @treturn Set The members of rank *n*.
 --
@@ -407,16 +408,16 @@ end
 --      {}
 --
 -- @see rank
-function Set:of_rankn (n, desc)
-    if desc == nil then desc = false end
-    if n == 0 and desc then return self:flatten() end
+function Set:of_rankn (n, rec)
+    if rec == nil then rec = false end
+    if n == 0 and rec then return self:flatten() end
     local is_set = is_set
     local rank = rank
     local add = Set.add
     local res = Set:new()
     for v in self:mems() do
         if rank(v) == n then add(res, {v}) end
-        if desc and is_set(v) then res = res + v:of_rankn(n, desc) end
+        if rec and is_set(v) then res = res + v:of_rankn(n, rec) end
     end
     return res
 end
@@ -485,7 +486,7 @@ function Set:map (func)
 end
 
 
---- Filters members of a set out.
+--- Filters members of a set.
 --
 -- @tparam function func A function that defines which members will be selected.
 --
@@ -510,9 +511,9 @@ end
 --- The members of the set as a table.
 --
 -- If the set contains other sets, these will be converted to tables, too.
--- Set `desc` to false to avoid this.
+-- Set `rec` to false to avoid this.
 --
--- @tparam[opt=true] boolean desc Whether to convert members to tables, too.
+-- @tparam[opt=true] boolean rec Whether to convert members to tables, too.
 --
 -- @treturn table All members of the set.
 --
@@ -521,8 +522,8 @@ end
 --      > r = a:totable()
 --      > table.unpack(r)
 --      1       2       3
-function Set:totable (desc)
-    if desc == nil then desc = true end
+function Set:totable (rec)
+    if rec == nil then rec = true end
     local is_set = is_set
     local totable = self.totable
     local res = {}
@@ -531,7 +532,7 @@ function Set:totable (desc)
     -- Arguably, such sets shouldn't exist.
     for i in self:mems() do
         n = n + 1
-        if desc and is_set(i) then
+        if rec and is_set(i) then
             res[n] = totable(i)
         else
             res[n] = i
@@ -898,6 +899,8 @@ ImmutableSet.mt.__index = ImmutableSet
 --
 -- @usage
 --      > ImmutableSet:new{1, 2, 3}
+--      {1, 2, 3}
+--      > ImmutableSet{1, 2, 3}
 --      {1, 2, 3}
 function ImmutableSet:new (elems)
     self = self or ImmutableSet
