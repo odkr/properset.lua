@@ -1,5 +1,6 @@
 #!/bin/sh
 
+ldoc .
 git add doc
 git commit -m 'Updated docs.'
 git subtree push --prefix doc origin gh-pages
