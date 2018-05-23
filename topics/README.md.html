@@ -49,9 +49,9 @@
 <p><a href="../index.html#">properset</a> allows to properly handle sets that contain objects, tables,
 or other sets, sports a rich and sane interface, and is well-documented.</p>
 
-<h2>Comparison of Set Packages in Lua</h2>
+<h2>Approaches to Handling Sets in Lua</h2>
 
-<p>I have found the following approaches:</p>
+<p>I found the following other approaches:</p>
 
 <ul>
 <li>Roberto Ierusalimschy&rsquo;s example in
@@ -78,8 +78,8 @@ reserved = Set{<span class="string">"while"</span>, <span class="string">"end"</
 </pre>
 
 
-<p>This approach is simple and fast, however it gets into trouble if we want
-set of complexes, say, tables or objects:</p>
+<p>This approach is simple and fast. However, it gets into trouble if we want
+to create sets of more complex data types, say, tables or objects:</p>
 
 <pre>
 &gt; <span class="keyword">function</span> Set (list)
@@ -97,17 +97,18 @@ set of complexes, say, tables or objects:</p>
 </pre>
 
 
-<p><code>a</code> and <code>b</code> are, for all intents and purposes, equal, so they should not
-<em>both</em> be members of the same set. However, because they are tables, all
+<p><code>a</code> and <code>b</code> are, for all intents and purposes, equal, so they should <em>not</em>
+both be members of the same set. However, because they are tables, all
 that matters when they are used as keys in other tables is their identity;
 and one and the same they are <em>not</em>.</p>
 
-<p>Note: Defining what it means for <code>a</code> and <code>b</code> to be equal makes no difference:</p>
+<p>And just in case, you wondered, defining what it means for <code>a</code> and <code>b</code>
+to be equal makes no difference:</p>
 
 <pre>
-&gt; equality = {__eq = <span class="keyword">function</span> () <span class="keyword">return</span> <span class="keyword">true</span> <span class="keyword">end</span>}
-&gt; a = <span class="global">setmetatable</span>(a, equality)
-&gt; b = <span class="global">setmetatable</span>(b, equality)
+&gt; maximum_equality = {__eq = <span class="keyword">function</span> () <span class="keyword">return</span> <span class="keyword">true</span> <span class="keyword">end</span>}
+&gt; a = <span class="global">setmetatable</span>({<span class="number">1</span>}, maximum_equality)
+&gt; b = <span class="global">setmetatable</span>({<span class="number">1</span>}, maximum_equality)
 &gt; a == b
 <span class="keyword">true</span>
 &gt; set = Set{a, b}
@@ -118,23 +119,40 @@ and one and the same they are <em>not</em>.</p>
 
 
 <p>When a table is used as a key in another table, no comparison takes place.
-So defining what it means to be equal is pointless.</p>
-
-<p>This is the main problem <a href="../index.html#">properset</a> solves.</p>
+So defining what it means to be equal makes no difference for that purpose.</p>
 
 <p>Scherphof, Baidakou and the Wiki adapt and expand upon Ierusalimschy&rsquo;s
 approach. Consequently, <code>set</code> and <code>OrderedSet</code> share this problem.</p>
 
+<p>This is the main problem <a href="../index.html#">properset</a> solves:</p>
+
+<pre>
+&gt; properset = <span class="global">require</span> <span class="string">'properset'</span>
+&gt; Set = properset.Set
+&gt; maximum_equality = {__eq = <span class="keyword">function</span> () <span class="keyword">return</span> <span class="keyword">true</span> <span class="keyword">end</span>}
+&gt; a = <span class="global">setmetatable</span>({<span class="number">1</span>}, maximum_equality)
+&gt; b = <span class="global">setmetatable</span>({<span class="number">1</span>}, maximum_equality)
+&gt; a == b
+<span class="keyword">true</span>
+&gt; set = Set{a, b}
+&gt; #set
+<span class="number">1</span>
+</pre>
+
+
 <p>Unfortunately, solving this problem means that elements have to be compared
-one by one, so <a href="../index.html#">properset</a> is slower than those approaches.</p>
+one by one, so, for sets of tables or objects, <a href="../index.html#">properset</a> is slower than
+those approaches; for simpler data types, <a href="../index.html#">properset</a> also uses
+Ierusalimschy&rsquo;s approach.</p>
 
-<p>Furthermore, <code>set</code> and <code>OrderSet</code> both sport spartan, undocumented interfaces.
-Scherphof even follows Ierusalimschy in overloading the <code>/</code> and <code>*</code> operators
-for set operations, but neither of those symbols are associated with the
-operations he assigns to them in set theory; hence, the interface is
-counter-intuitive and the resulting code hard to read.</p>
+<p>Moreover, <code>set</code> and <code>OrderSet</code> both sport spartan, undocumented interfaces.
+Scherphof even follows Ierusalimschy in overloading the <code><em></code> operator to mean
+&lsquo;intersect&rsquo;. However, <code></em></code> carries no meaning in set theory. The closest set
+theory comes to multiplications are cartesian products, which have nothing
+to do with intersections of sets. This makes the interface counter-intuitive
+and the resulting code hard to understand.</p>
 
-<p><a href="../index.html#">properset</a> aims to have a rich, but sane interface.</p>
+<p><a href="../index.html#">properset</a> also aims to have a rich and sane interface.</p>
 
 <h2>Documentation</h2>
 
@@ -211,7 +229,7 @@ SOFTWARE.</p>
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-05-18 19:54:07 </i>
+<i style="float:right;">Last updated 2018-05-23 13:33:46 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

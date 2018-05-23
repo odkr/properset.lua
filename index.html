@@ -58,7 +58,7 @@
     <ul>
         <pre class="example">&gt; properset = require &apos;properset&apos;
 &gt; Set = properset.Set
-&gt; a = Set:new{1, 2, 2, 3, 3, 3}
+&gt; a = Set{1, 2, 2, 3, 3, 3}
 &gt; a
 {1, 2, 3}
 </pre>
@@ -79,34 +79,6 @@
 	<td class="summary">Creates a new instance of a prototype, typically <a href="index.html#Set">Set</a>.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:__newindex">Set:__newindex ()</a></td>
-	<td class="summary">Blocks accidential modifications of a set or its members.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:__len">Set:__len ()</a></td>
-	<td class="summary">The number of elements in the set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:mems">Set:mems ()</a></td>
-	<td class="summary">Iterates over all members of the set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:__ipairs">Set:__ipairs ()</a></td>
-	<td class="summary">Iterates over the set as if it were a list.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set.__pairs">Set.__pairs</a></td>
-	<td class="summary">Iterates over the set as if it were a table.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:map">Set:map (func)</a></td>
-	<td class="summary">Maps a function of all values of the set onto another set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:filter">Set:filter (func)</a></td>
-	<td class="summary">Filters members of a set out.</td>
-	</tr>
-	<tr>
 	<td class="name" nowrap><a href="#Set:add">Set:add (elems)</a></td>
 	<td class="summary">Adds elements to a set.</td>
 	</tr>
@@ -119,40 +91,16 @@
 	<td class="summary">Tests whether the set is empty.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:has">Set:has (obj)</a></td>
-	<td class="summary">Tests whether an object is a member of the set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:__le">Set:__le (other)</a></td>
-	<td class="summary">Tests whether the set is a subset of another set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:__ge">Set:__ge (other)</a></td>
-	<td class="summary">Tests whether the set is a superset of another set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:__lt">Set:__lt (other)</a></td>
-	<td class="summary">Tests whether the set is a strict subset of another set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:__gt">Set:__gt (other)</a></td>
-	<td class="summary">Tests whether the set is a strict superset of another set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:__eq">Set:__eq (other)</a></td>
-	<td class="summary">Tests whether the set is equal to another set.</td>
-	</tr>
-	<tr>
 	<td class="name" nowrap><a href="#Set:is_disjoint_from">Set:is_disjoint_from (other)</a></td>
 	<td class="summary">Tests whether the set is disjoint from another set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:__sub">Set:__sub (other)</a></td>
-	<td class="summary">The complement of the set and another set.</td>
+	<td class="name" nowrap><a href="#Set:has">Set:has (obj)</a></td>
+	<td class="summary">Tests whether an object is a member of the set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:__add">Set:__add (other)</a></td>
-	<td class="summary">The union of the set and another set.</td>
+	<td class="name" nowrap><a href="#Set:mems">Set:mems ()</a></td>
+	<td class="summary">Iterates over all members of the set.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set:intersection">Set:intersection (other)</a></td>
@@ -171,7 +119,7 @@
 	<td class="summary">The set&rsquo;s rank.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:of_rankn">Set:of_rankn (n, desc)</a></td>
+	<td class="name" nowrap><a href="#Set:of_rankn">Set:of_rankn (n[, rec=false])</a></td>
 	<td class="summary">All members of rank <em>n</em>.</td>
 	</tr>
 	<tr>
@@ -179,32 +127,80 @@
 	<td class="summary">All members at level <em>n</em>.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:__tostring">Set:__tostring ()</a></td>
-	<td class="summary">A string representation of the set.</td>
+	<td class="name" nowrap><a href="#Set:map">Set:map (func)</a></td>
+	<td class="summary">Maps a function of all values of the set onto another set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:totable">Set:totable ([desc=true])</a></td>
+	<td class="name" nowrap><a href="#Set:filter">Set:filter (func)</a></td>
+	<td class="summary">Filters members of a set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set:totable">Set:totable ([rec=true])</a></td>
 	<td class="summary">The members of the set as a table.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:flatten">Set:flatten ()</a></td>
-	<td class="summary">The non-set members of the set and its descendants.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:sorted">Set:sorted ([callable])</a></td>
-	<td class="summary">Returns the members of the set sorted.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:concat">Set:concat ([sep=''])</a></td>
-	<td class="summary">Concatenates all members of the set to a string.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set:unpack">Set:unpack ()</a></td>
 	<td class="summary">Unpacks the members of the set.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#Set:concat">Set:concat ([sep=''])</a></td>
+	<td class="summary">Concatenates all members of the set to a string.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set:sorted">Set:sorted ([callable])</a></td>
+	<td class="summary">Returns the members of the set sorted.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set:flatten">Set:flatten ()</a></td>
+	<td class="summary">The non-set members of the set and its descendants.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#Set:copy">Set:copy (set)</a></td>
 	<td class="summary">Copies a set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__newindex">Set.mt:__newindex ()</a></td>
+	<td class="summary">Blocks accidential modifications of a set or its members.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__call">Set.mt:__call ([elems])</a></td>
+	<td class="summary">Easier access to new in derived prototypes.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__len">Set.mt:__len ()</a></td>
+	<td class="summary">The number of elements in the set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__ipairs">Set.mt:__ipairs ()</a></td>
+	<td class="summary">Iterates over the set as if it were a list.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt.__pairs">Set.mt.__pairs</a></td>
+	<td class="summary">Iterates over the set as if it were a table.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__le">Set.mt:__le (other)</a></td>
+	<td class="summary">Tests whether the set is a subset of another set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__lt">Set.mt:__lt (other)</a></td>
+	<td class="summary">Tests whether the set is a strict subset of another set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__eq">Set.mt:__eq (other)</a></td>
+	<td class="summary">Tests whether the set is equal to another set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__sub">Set.mt:__sub (other)</a></td>
+	<td class="summary">The complement of the set and another set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__add">Set.mt:__add (other)</a></td>
+	<td class="summary">The union of the set and another set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__tostring">Set.mt:__tostring ()</a></td>
+	<td class="summary">A string representation of the set.</td>
 	</tr>
 </table>
 <h2><a href="#Class_ImmutableSet">Class ImmutableSet </a></h2>
@@ -220,10 +216,6 @@
 	<tr>
 	<td class="name" nowrap><a href="#ImmutableSet.delete">ImmutableSet.delete ()</a></td>
 	<td class="summary">Blocks accidential modifications of a set or its members.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#ImmutableSet.__tostring">ImmutableSet.__tostring</a></td>
-	<td class="summary">A string representation of the set.</td>
 	</tr>
 </table>
 <h2><a href="#n_ary_set_arithmetics">n-ary set arithmetics </a></h2>
@@ -256,7 +248,7 @@
 	<td class="summary">Tests whether an object behaves Set-ish.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#assert_set">assert_set (obj[, err])</a></td>
+	<td class="name" nowrap><a href="#assert_set">assert_set (obj[, var])</a></td>
 	<td class="summary">Asserts that an object is a set.</td>
 	</tr>
 	<tr>
@@ -284,7 +276,7 @@
 
           <div class="section-description">
           Sets contain every item at most once.
- They can only be modified using <a href="index.html#Set:add">add</a> and <a href="index.html#Set:delete">delete</a>.
+ They can only be modified using <a href="index.html#Set:add">add</a> and <a href="index.html#ImmutableSet.delete">delete</a>.
  And set members are (mostly) immutable.</p>
 
 <p> You should <em>not</em> attempt to modify set members.
@@ -321,187 +313,9 @@
     <h3>Usage:</h3>
     <ul>
         <pre class="example">&gt; Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+&gt; Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:__newindex"></a>
-    <strong>Set:__newindex ()</strong>
-    </dt>
-    <dd>
-    Blocks accidential modifications of a set or its members.
-
-
-
-
-    <h3>Raises:</h3>
-    An error whenever it&rsquo;s invoked.
-
-
-
-</dd>
-    <dt>
-    <a name = "Set:__len"></a>
-    <strong>Set:__len ()</strong>
-    </dt>
-    <dd>
-    The number of elements in the set.
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">number</span></span>
-        Number of elements in the set.
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; #a
-<span class="number">3</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:mems"></a>
-    <strong>Set:mems ()</strong>
-    </dt>
-    <dd>
-    Iterates over all members of the set.
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">function</span></span>
-        A function that returns a member of the set.
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; <span class="keyword">for</span> v <span class="keyword">in</span> a:mems() <span class="keyword">do</span> <span class="global">print</span>(v) <span class="keyword">end</span>
-<span class="number">1</span>
-<span class="number">2</span>
-<span class="number">3</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:__ipairs"></a>
-    <strong>Set:__ipairs ()</strong>
-    </dt>
-    <dd>
-    Iterates over the set as if it were a list.
-
-
-
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>}
-&gt; <span class="keyword">for</span> i, v <span class="keyword">in</span> <span class="global">ipairs</span>(a) <span class="keyword">do</span> <span class="global">print</span>(i, v) <span class="keyword">end</span>
-<span class="number">1</span>       a
-<span class="number">2</span>       b
-<span class="number">3</span>       c</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set.__pairs"></a>
-    <strong>Set.__pairs</strong>
-    </dt>
-    <dd>
-    Iterates over the set as if it were a table.
-
-
-
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>}
-&gt; <span class="keyword">for</span> k, v <span class="keyword">in</span> <span class="global">pairs</span>(a) <span class="keyword">do</span> <span class="global">print</span>(k, v) <span class="keyword">end</span>
-<span class="number">1</span>       a
-<span class="number">2</span>       b
-<span class="number">3</span>       c</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:map"></a>
-    <strong>Set:map (func)</strong>
-    </dt>
-    <dd>
-    Maps a function of all values of the set onto another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">func</span>
-            <span class="types"><span class="type">function</span></span>
-         A function to be applied to each member.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-        The results of applying <code>func</code> to the members of the set.
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; a:map(<span class="keyword">function</span>(i) <span class="keyword">return</span> i + <span class="number">1</span> <span class="keyword">end</span>)
-{<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:filter"></a>
-    <strong>Set:filter (func)</strong>
-    </dt>
-    <dd>
-    Filters members of a set out.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">func</span>
-            <span class="types"><span class="type">function</span></span>
-         A function that defines which members will be selected.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-        The filtered set.
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; a:filter(<span class="keyword">function</span>(i) <span class="keyword">return</span> i % <span class="number">2</span> == <span class="number">0</span> <span class="keyword">end</span>)
-{<span class="number">2</span>}</pre>
     </ul>
 
 </dd>
@@ -524,11 +338,13 @@
     </ul>
 
 
+    <h3>Raises:</h3>
+    Raises an error if you try to add a set to itself.
 
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
 &gt; a:add{<span class="number">2</span>}
 &gt; a
 {<span class="number">1</span>, <span class="number">2</span>}
@@ -561,7 +377,7 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 &gt; a:delete{<span class="number">2</span>, <span class="number">3</span>}
 &gt; a
 {<span class="number">1</span>}</pre>
@@ -588,258 +404,12 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new()
+        <pre class="example">&gt; a = Set()
 &gt; a:is_empty()
 <span class="keyword">true</span>
-&gt; b = Set:new{<span class="number">1</span>}
+&gt; b = Set{<span class="number">1</span>}
 &gt; b:is_empty()
 <span class="keyword">false</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:has"></a>
-    <strong>Set:has (obj)</strong>
-    </dt>
-    <dd>
-    Tests whether an object is a member of the set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">obj</span>
-         An object.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-        Whether an object is a member of the set.
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
-&gt; a:has(<span class="number">1</span>)
-<span class="keyword">true</span>
-&gt; a:has(<span class="number">0</span>)
-<span class="keyword">false</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:__le"></a>
-    <strong>Set:__le (other)</strong>
-    </dt>
-    <dd>
-    Tests whether the set is a subset of another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-        Whether the set is a subset of another set.
-    </ol>
-
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set:new{<span class="number">1</span>}
-&gt; c = Set:new{<span class="number">3</span>}
-&gt; b &lt;= a
-<span class="keyword">true</span>
-&gt; c &lt;= a
-<span class="keyword">false</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:__ge"></a>
-    <strong>Set:__ge (other)</strong>
-    </dt>
-    <dd>
-    Tests whether the set is a superset of another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-        Whether the set is a superset of another set.
-    </ol>
-
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set:new{<span class="number">1</span>}
-&gt; c = Set:new{<span class="number">3</span>}
-&gt; a &gt;= b
-<span class="keyword">true</span>
-&gt; a &gt;= c
-<span class="keyword">false</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:__lt"></a>
-    <strong>Set:__lt (other)</strong>
-    </dt>
-    <dd>
-    Tests whether the set is a strict subset of another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-        Whether the set is a strict subset of another set.
-    </ol>
-
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set:new{<span class="number">1</span>}
-&gt; c = Set:new{<span class="number">3</span>}
-&gt; a &lt; a
-<span class="keyword">false</span>
-&gt; a &lt;= a
-<span class="keyword">true</span>
-&gt; b &lt; a
-<span class="keyword">true</span>
-&gt; c &lt; a
-<span class="keyword">false</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:__gt"></a>
-    <strong>Set:__gt (other)</strong>
-    </dt>
-    <dd>
-    Tests whether the set is a strict superset of another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-        Whether the set is a strict superset of another set.
-    </ol>
-
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set:new{<span class="number">1</span>}
-&gt; c = Set:new{<span class="number">3</span>}
-&gt; a &gt; a
-<span class="keyword">false</span>
-&gt; a &gt;= a
-<span class="keyword">true</span>
-&gt; a &gt; b
-<span class="keyword">true</span>
-&gt; a &gt; c
-<span class="keyword">false</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:__eq"></a>
-    <strong>Set:__eq (other)</strong>
-    </dt>
-    <dd>
-    Tests whether the set is equal to another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-        Whether the set is equal to another set.
-    </ol>
-
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
-&gt; b = Set:new{<span class="number">1</span>}
-&gt; c = Set:new{<span class="number">2</span>}
-&gt; a == b
-<span class="keyword">true</span>
-&gt; a ~= b
-<span class="keyword">false</span>
-&gt; a == c
-<span class="keyword">false</span>
-&gt; a ~= c
-<span class="keyword">true</span></pre>
     </ul>
 
 </dd>
@@ -873,9 +443,9 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
-&gt; b = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; c = Set:new{<span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; b = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; c = Set{<span class="number">3</span>}
 &gt; a:is_disjoint_from(b)
 <span class="keyword">false</span>
 &gt; a:is_disjoint_from(c)
@@ -884,80 +454,64 @@
 
 </dd>
     <dt>
-    <a name = "Set:__sub"></a>
-    <strong>Set:__sub (other)</strong>
+    <a name = "Set:has"></a>
+    <strong>Set:has (obj)</strong>
     </dt>
     <dd>
-    The complement of the set and another set. </p>
-
-<p> <code>complement(a, b)</code> and <code>a &ndash; b</code> are equivalent.
+    Tests whether an object is a member of the set.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
+        <li><span class="parameter">obj</span>
+         An object.
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-        The complement of the two sets.
+           <span class="types"><span class="type">boolean</span></span>
+        Whether an object is a member of the set.
     </ol>
 
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
 
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set:new{<span class="number">2</span>}
-&gt; a - b
-{<span class="number">1</span>}</pre>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; a:has(<span class="number">1</span>)
+<span class="keyword">true</span>
+&gt; a:has(<span class="number">0</span>)
+<span class="keyword">false</span></pre>
     </ul>
 
 </dd>
     <dt>
-    <a name = "Set:__add"></a>
-    <strong>Set:__add (other)</strong>
+    <a name = "Set:mems"></a>
+    <strong>Set:mems ()</strong>
     </dt>
     <dd>
-    The union of the set and another set. </p>
-
-<p> <code>a:union(b)</code> and <code>a + b</code> are equivalent.
+    Iterates over all members of the set.
 
 
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
-        </li>
-    </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-        The union of the two sets.
+           <span class="types"><span class="type">function</span></span>
+        A function that returns a member of the set.
     </ol>
 
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
 
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
-&gt; b = Set:new{<span class="number">2</span>}
-&gt; a + b
-{<span class="number">1</span>, <span class="number">2</span>}</pre>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+&gt; <span class="keyword">for</span> v <span class="keyword">in</span> a:mems() <span class="keyword">do</span> <span class="global">print</span>(v) <span class="keyword">end</span>
+<span class="number">1</span>
+<span class="number">2</span>
+<span class="number">3</span></pre>
     </ul>
 
 </dd>
@@ -991,9 +545,9 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
-&gt; b = Set:new{<span class="number">1</span>,<span class="number">2</span>}
-&gt; c = Set:new{<span class="number">2</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; b = Set{<span class="number">1</span>,<span class="number">2</span>}
+&gt; c = Set{<span class="number">2</span>}
 &gt; a:intersection(b)
 {<span class="number">1</span>}
 &gt; b:intersection(c)
@@ -1033,8 +587,8 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set:new{<span class="number">1</span>, <span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; b = Set{<span class="number">1</span>, <span class="number">3</span>}
 &gt; a:difference(b)
 {<span class="number">2</span>, <span class="number">3</span>}</pre>
     </ul>
@@ -1078,7 +632,7 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">0</span>, <span class="number">1</span>}
+        <pre class="example">&gt; a = Set{<span class="number">0</span>, <span class="number">1</span>}
 &gt; a:power()
 {{<span class="number">0</span>, <span class="number">1</span>}, {<span class="number">1</span>}, {}, {<span class="number">0</span>}}</pre>
     </ul>
@@ -1110,7 +664,7 @@
 </dd>
     <dt>
     <a name = "Set:of_rankn"></a>
-    <strong>Set:of_rankn (n, desc)</strong>
+    <strong>Set:of_rankn (n[, rec=false])</strong>
     </dt>
     <dd>
     All members of rank <em>n</em>. </p>
@@ -1124,9 +678,10 @@
             <span class="types"><span class="type">number</span></span>
          The rank.
         </li>
-        <li><span class="parameter">desc</span>
+        <li><span class="parameter">rec</span>
             <span class="types"><span class="type">boolean</span></span>
-         Whether to descend into members that are sets, too.
+         Whether to recurse into members, too.
+         (<em>default</em> false)
         </li>
     </ul>
 
@@ -1145,7 +700,7 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, Set:new{<span class="number">2</span>, Set:new{<span class="number">3</span>, <span class="number">4</span>}, Set:new{<span class="number">5</span>}}, Set:new{<span class="number">6</span>}}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, Set{<span class="number">2</span>, Set{<span class="number">3</span>, <span class="number">4</span>}, Set{<span class="number">5</span>}}, Set{<span class="number">6</span>}}
 &gt; a
 {<span class="number">1</span>, {<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}, {<span class="number">6</span>}}
 &gt; a:of_rankn(<span class="number">0</span>)
@@ -1201,7 +756,7 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, Set:new{<span class="number">2</span>, Set:new{<span class="number">3</span>, <span class="number">4</span>}, Set:new{<span class="number">5</span>}}, Set:new{<span class="number">6</span>}}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, Set{<span class="number">2</span>, Set{<span class="number">3</span>, <span class="number">4</span>}, Set{<span class="number">5</span>}}, Set{<span class="number">6</span>}}
 &gt; a
 {<span class="number">1</span>, {<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}, {<span class="number">6</span>}}
 &gt; a:at_leveln(<span class="number">1</span>)
@@ -1216,47 +771,85 @@
 
 </dd>
     <dt>
-    <a name = "Set:__tostring"></a>
-    <strong>Set:__tostring ()</strong>
+    <a name = "Set:map"></a>
+    <strong>Set:map (func)</strong>
     </dt>
     <dd>
-    A string representation of the set. </p>
-
-<p> <code>__tostring(a)</code> and <code>tostring(a)</code> are equivalent.
+    Maps a function of all values of the set onto another set.
 
 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">func</span>
+            <span class="types"><span class="type">function</span></span>
+         A function to be applied to each member.
+        </li>
+    </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
-        A string that represents the set.
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        The results of applying <code>func</code> to the members of the set.
     </ol>
 
 
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, Set:new{<span class="number">2</span>, <span class="number">3</span>}, <span class="number">4</span>}
-&gt; <span class="global">tostring</span>(a)
-{<span class="number">1</span>, {<span class="number">2</span>, <span class="number">3</span>}, <span class="number">4</span>}</pre>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+&gt; a:map(<span class="keyword">function</span>(i) <span class="keyword">return</span> i + <span class="number">1</span> <span class="keyword">end</span>)
+{<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set:filter"></a>
+    <strong>Set:filter (func)</strong>
+    </dt>
+    <dd>
+    Filters members of a set.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">func</span>
+            <span class="types"><span class="type">function</span></span>
+         A function that defines which members will be selected.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        The filtered set.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+&gt; a:filter(<span class="keyword">function</span>(i) <span class="keyword">return</span> i % <span class="number">2</span> == <span class="number">0</span> <span class="keyword">end</span>)
+{<span class="number">2</span>}</pre>
     </ul>
 
 </dd>
     <dt>
     <a name = "Set:totable"></a>
-    <strong>Set:totable ([desc=true])</strong>
+    <strong>Set:totable ([rec=true])</strong>
     </dt>
     <dd>
     The members of the set as a table. </p>
 
 <p> If the set contains other sets, these will be converted to tables, too.
- Set <code>desc</code> to false to avoid this.
+ Set <code>rec</code> to false to avoid this.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">desc</span>
+        <li><span class="parameter">rec</span>
             <span class="types"><span class="type">boolean</span></span>
          Whether to convert members to tables, too.
          (<em>default</em> true)
@@ -1274,7 +867,7 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 &gt; r = a:totable()
 &gt; <span class="global">table</span>.unpack(r)
 <span class="number">1</span>       <span class="number">2</span>       <span class="number">3</span></pre>
@@ -1282,66 +875,27 @@
 
 </dd>
     <dt>
-    <a name = "Set:flatten"></a>
-    <strong>Set:flatten ()</strong>
+    <a name = "Set:unpack"></a>
+    <strong>Set:unpack ()</strong>
     </dt>
     <dd>
-    The non-set members of the set and its descendants.
+    Unpacks the members of the set.
 
 
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-        A set with all non-set members of the set and its descendants.
+        The members of the given set unpacked.
     </ol>
 
 
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, Set:new{<span class="number">2</span>, <span class="number">3</span>}, <span class="number">4</span>}
-&gt; b = a:power()
-&gt; b:flatten()
-{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:sorted"></a>
-    <strong>Set:sorted ([callable])</strong>
-    </dt>
-    <dd>
-    Returns the members of the set sorted. </p>
-
-<p> Keep in mind, sets may be multidimensional. Consider using <a href="index.html#Set:flatten">flatten</a>.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">callable</span>
-            <span class="types"><span class="type">function</span></span>
-         A sorting function.
-         (<em>optional</em>)
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.6">table</a></span>
-        A list of the members of the given set, sorted.
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">8</span>, <span class="number">10</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">7</span>}
-&gt; r = a:sorted()
-&gt; <span class="global">table</span>.concat(r, <span class="string">', '</span>)
-<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span></pre>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+&gt; a:unpack()
+<span class="number">1</span>       <span class="number">2</span>       <span class="number">3</span></pre>
     </ul>
 
 </dd>
@@ -1375,34 +929,73 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 &gt; a:concat(<span class="string">', '</span>)
 <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span></pre>
     </ul>
 
 </dd>
     <dt>
-    <a name = "Set:unpack"></a>
-    <strong>Set:unpack ()</strong>
+    <a name = "Set:sorted"></a>
+    <strong>Set:sorted ([callable])</strong>
     </dt>
     <dd>
-    Unpacks the members of the set.
+    Returns the members of the set sorted. </p>
+
+<p> Keep in mind, sets may be multidimensional. Consider using <a href="index.html#Set:flatten">flatten</a>.
 
 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">callable</span>
+            <span class="types"><span class="type">function</span></span>
+         A sorting function.
+         (<em>optional</em>)
+        </li>
+    </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        The members of the given set unpacked.
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.6">table</a></span>
+        A list of the members of the given set, sorted.
     </ol>
 
 
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; a:unpack()
-<span class="number">1</span>       <span class="number">2</span>       <span class="number">3</span></pre>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">8</span>, <span class="number">10</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">7</span>}
+&gt; r = a:sorted()
+&gt; <span class="global">table</span>.concat(r, <span class="string">', '</span>)
+<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span></pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set:flatten"></a>
+    <strong>Set:flatten ()</strong>
+    </dt>
+    <dd>
+    The non-set members of the set and its descendants.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        A set with all non-set members of the set and its descendants.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, Set{<span class="number">2</span>, <span class="number">3</span>}, <span class="number">4</span>}
+&gt; b = a:power()
+&gt; b:flatten()
+{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}</pre>
     </ul>
 
 </dd>
@@ -1419,15 +1012,15 @@
 
 <p> Instead of:</p>
 
-<pre><code>  a = Set:new{1, 2, 3}
+<pre><code>  a = Set{1, 2, 3}
   b = a:copy()
   b:add{4}
 </code></pre>
 
 <p> Write:</p>
 
-<pre><code>  a = Set:new{1, 2, 3}
-  b = a + Set:new{4}
+<pre><code>  a = Set{1, 2, 3}
+  b = a + Set{4}
 </code></pre>
 
 
@@ -1450,7 +1043,7 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 &gt; r = a:copy()
 &gt; r
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
@@ -1460,11 +1053,359 @@
     </ul>
 
 </dd>
+    <dt>
+    <a name = "Set.mt:__newindex"></a>
+    <strong>Set.mt:__newindex ()</strong>
+    </dt>
+    <dd>
+    Blocks accidential modifications of a set or its members.
+
+
+
+
+    <h3>Raises:</h3>
+    An error whenever it&rsquo;s invoked.
+
+
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__call"></a>
+    <strong>Set.mt:__call ([elems])</strong>
+    </dt>
+    <dd>
+    Easier access to new in derived prototypes.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">elems</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.6">table</a></span>
+         Members for the new set.
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        An instance of the given prototype for sets,
+  populated with <code>elems</code>, if any were given.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__len"></a>
+    <strong>Set.mt:__len ()</strong>
+    </dt>
+    <dd>
+    The number of elements in the set.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">number</span></span>
+        Number of elements in the set.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+&gt; #a
+<span class="number">3</span></pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__ipairs"></a>
+    <strong>Set.mt:__ipairs ()</strong>
+    </dt>
+    <dd>
+    Iterates over the set as if it were a list.
+
+
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>}
+&gt; <span class="keyword">for</span> i, v <span class="keyword">in</span> <span class="global">ipairs</span>(a) <span class="keyword">do</span> <span class="global">print</span>(i, v) <span class="keyword">end</span>
+<span class="number">1</span>       a
+<span class="number">2</span>       b
+<span class="number">3</span>       c</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set.mt.__pairs"></a>
+    <strong>Set.mt.__pairs</strong>
+    </dt>
+    <dd>
+    Iterates over the set as if it were a table.
+
+
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>}
+&gt; <span class="keyword">for</span> k, v <span class="keyword">in</span> <span class="global">pairs</span>(a) <span class="keyword">do</span> <span class="global">print</span>(k, v) <span class="keyword">end</span>
+<span class="number">1</span>       a
+<span class="number">2</span>       b
+<span class="number">3</span>       c</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__le"></a>
+    <strong>Set.mt:__le (other)</strong>
+    </dt>
+    <dd>
+    Tests whether the set is a subset of another set.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">other</span>
+            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+         The other set.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+        Whether the set is a subset of another set.
+    </ol>
+
+    <h3>Raises:</h3>
+     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
+  (or another implementation of its protocol).
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; b = Set{<span class="number">1</span>}
+&gt; c = Set{<span class="number">3</span>}
+&gt; b &lt;= a
+<span class="keyword">true</span>
+&gt; c &lt;= a
+<span class="keyword">false</span></pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__lt"></a>
+    <strong>Set.mt:__lt (other)</strong>
+    </dt>
+    <dd>
+    Tests whether the set is a strict subset of another set.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">other</span>
+            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+         The other set.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+        Whether the set is a strict subset of another set.
+    </ol>
+
+    <h3>Raises:</h3>
+     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
+  (or another implementation of its protocol).
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; b = Set{<span class="number">1</span>}
+&gt; c = Set{<span class="number">3</span>}
+&gt; a &lt; a
+<span class="keyword">false</span>
+&gt; a &lt;= a
+<span class="keyword">true</span>
+&gt; b &lt; a
+<span class="keyword">true</span>
+&gt; c &lt; a
+<span class="keyword">false</span></pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__eq"></a>
+    <strong>Set.mt:__eq (other)</strong>
+    </dt>
+    <dd>
+    Tests whether the set is equal to another set.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">other</span>
+            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+         The other set.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+        Whether the set is equal to another set.
+    </ol>
+
+    <h3>Raises:</h3>
+     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
+  (or another implementation of its protocol).
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; b = Set{<span class="number">1</span>}
+&gt; c = Set{<span class="number">2</span>}
+&gt; a == b
+<span class="keyword">true</span>
+&gt; a ~= b
+<span class="keyword">false</span>
+&gt; a == c
+<span class="keyword">false</span>
+&gt; a ~= c
+<span class="keyword">true</span></pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__sub"></a>
+    <strong>Set.mt:__sub (other)</strong>
+    </dt>
+    <dd>
+    The complement of the set and another set. </p>
+
+<p> <code>complement(a, b)</code> and <code>a &ndash; b</code> are equivalent.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">other</span>
+            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+         The other set.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        The complement of the two sets.
+    </ol>
+
+    <h3>Raises:</h3>
+     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
+  (or another implementation of its protocol).
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; b = Set{<span class="number">2</span>}
+&gt; a - b
+{<span class="number">1</span>}</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__add"></a>
+    <strong>Set.mt:__add (other)</strong>
+    </dt>
+    <dd>
+    The union of the set and another set. </p>
+
+<p> <code>a:union(b)</code> and <code>a + b</code> are equivalent.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">other</span>
+            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+         The other set.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        The union of the two sets.
+    </ol>
+
+    <h3>Raises:</h3>
+     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
+  (or another implementation of its protocol).
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; b = Set{<span class="number">2</span>}
+&gt; a + b
+{<span class="number">1</span>, <span class="number">2</span>}</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set.mt:__tostring"></a>
+    <strong>Set.mt:__tostring ()</strong>
+    </dt>
+    <dd>
+    A string representation of the set. </p>
+
+<p> <code>__tostring(a)</code> and <code>tostring(a)</code> are equivalent.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
+        A string that represents the set.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, Set{<span class="number">2</span>, <span class="number">3</span>}, <span class="number">4</span>}
+&gt; <span class="global">tostring</span>(a)
+{<span class="number">1</span>, {<span class="number">2</span>, <span class="number">3</span>}, <span class="number">4</span>}</pre>
+    </ul>
+
+</dd>
 </dl>
     <h2 class="section-header has-description"><a name="Class_ImmutableSet"></a>Class ImmutableSet </h2>
 
           <div class="section-description">
-          Immutable Sets are just sets without an <a href="index.html#Set:add">add</a> and a <a href="index.html#Set:delete">delete</a> method.
+          Immutable Sets are just sets without an <a href="index.html#Set:add">add</a> and a <a href="index.html#ImmutableSet.delete">delete</a> method.
  (Strictly speaking, they have those methods, but calling them
  results in a runtime error.) They can be populated when they are
  created but cannot be changed afterwards (through their interface
@@ -1502,6 +1443,8 @@
     <h3>Usage:</h3>
     <ul>
         <pre class="example">&gt; ImmutableSet:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+&gt; ImmutableSet{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}</pre>
     </ul>
 
@@ -1538,30 +1481,6 @@
 
 
 </dd>
-    <dt>
-    <a name = "ImmutableSet.__tostring"></a>
-    <strong>ImmutableSet.__tostring</strong>
-    </dt>
-    <dd>
-    A string representation of the set. </p>
-
-<p> <code>__tostring(a)</code> and <code>tostring(a)</code> are equivalent.</p>
-
-<p> I'm not sure why inheritance doesn&rsquo;t work for <a href="index.html#Set:__tostring">__tostring</a>.
-
-
-
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = ImmutableSet:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; <span class="global">tostring</span>(a)
-{<span class="number">1</span>, <span class="number">2</span>}</pre>
-    </ul>
-
-</dd>
 </dl>
     <h2 class="section-header "><a name="n_ary_set_arithmetics"></a>n-ary set arithmetics </h2>
 
@@ -1593,10 +1512,10 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
-&gt; b = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; c = Set:new{<span class="number">2</span>}
-&gt; d = Set:new{<span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; b = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; c = Set{<span class="number">2</span>}
+&gt; d = Set{<span class="number">3</span>}
 &gt; properset.are_disjoint{a, b, c}
 <span class="keyword">false</span>
 &gt; properset.are_disjoint{a, c, d}
@@ -1637,8 +1556,8 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set:new{<span class="number">2</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; b = Set{<span class="number">2</span>}
 &gt; properset.complement(a, b)
 {<span class="number">1</span>}</pre>
     </ul>
@@ -1673,9 +1592,9 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
-&gt; b = Set:new{<span class="number">2</span>}
-&gt; c = Set:new{<span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; b = Set{<span class="number">2</span>}
+&gt; c = Set{<span class="number">3</span>}
 &gt; properset.union{a, b, c}
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}</pre>
     </ul>
@@ -1708,10 +1627,10 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>}
-&gt; b = Set:new{<span class="number">1</span>,<span class="number">2</span>}
-&gt; c = Set:new{<span class="number">2</span>}
-&gt; d = Set:new{<span class="number">1</span>,<span class="number">3</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; b = Set{<span class="number">1</span>,<span class="number">2</span>}
+&gt; c = Set{<span class="number">2</span>}
+&gt; d = Set{<span class="number">1</span>,<span class="number">3</span>}
 &gt; properset.intersection{a, b, c}
 {}
 &gt; properset.intersection{a, b, d}
@@ -1753,9 +1672,9 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set:new{<span class="number">1</span>, <span class="number">3</span>}
-&gt; c = Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; b = Set{<span class="number">1</span>, <span class="number">3</span>}
+&gt; c = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}
 &gt; properset.difference{a, b, c}
 {<span class="number">1</span>, <span class="number">4</span>}</pre>
     </ul>
@@ -1791,7 +1710,7 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set:new()
+        <pre class="example">&gt; a = Set()
 &gt; properset.is_set(a)
 <span class="keyword">true</span>
 &gt; b = <span class="string">"I may be many things, but a Set I'm not."</span>
@@ -1802,7 +1721,7 @@
 </dd>
     <dt>
     <a name = "assert_set"></a>
-    <strong>assert_set (obj[, err])</strong>
+    <strong>assert_set (obj[, var])</strong>
     </dt>
     <dd>
     Asserts that an object is a set.
@@ -1813,8 +1732,8 @@
         <li><span class="parameter">obj</span>
          An object.
         </li>
-        <li><span class="parameter">err</span>
-         An error message.
+        <li><span class="parameter">var</span>
+         The name of the variable.
          (<em>optional</em>)
         </li>
     </ul>
@@ -1862,10 +1781,10 @@
         <pre class="example">&gt; s = <span class="string">"I'm nobody."</span>
 &gt; properset.rank(s)
 <span class="number">0</span>
-&gt; a = Set:new()
+&gt; a = Set()
 &gt; properset.rank(a)
 <span class="number">1</span>
-&gt; b = Set:new{Set:new{Set:new{Set:new{}}, Set:new{}, <span class="number">1</span>}, <span class="number">2</span>}
+&gt; b = Set{Set{Set{Set{}}, Set{}, <span class="number">1</span>}, <span class="number">2</span>}
 &gt; properset.rank(b)
 <span class="number">4</span></pre>
     </ul>
@@ -1879,7 +1798,7 @@
     Copies a table recursively. </p>
 
 <p> Handles metatables, recursive structures, tables as keys, metatables,
- avoids the <a href="index.html#Set.__pairs">__pairs</a> metemethod, and can handle instances of <a href="index.html#Set">Set</a>.
+ avoids the <a href="index.html#Set.mt.__pairs">__pairs</a> metemethod, and can handle instances of <a href="index.html#Set">Set</a>.
 
 
     <h3>Parameters:</h3>
@@ -1919,12 +1838,12 @@
     <dd>
     The empty set. </p>
 
-<p> This set cannot be modified via <a href="index.html#Set:add">add</a> and <a href="index.html#Set:delete">delete</a>.
+<p> This set cannot be modified via <a href="index.html#Set:add">add</a> and <a href="index.html#ImmutableSet.delete">delete</a>.
 
 
     <ul>
         <li><span class="parameter">emptyset</span>
-         The empty set (<code>ImmutableSet:new{}</code>).
+         The empty set (<code>ImmutableSet:new()</code>).
         </li>
     </ul>
 
@@ -1940,7 +1859,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-05-18 19:54:07 </i>
+<i style="float:right;">Last updated 2018-05-23 13:33:46 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
