@@ -6,4 +6,3 @@ well-documented.]]
 readme = 'README.md'
 file = { 'src/properset.lua' }
 format = 'discount'
-dir = 'docs'
