@@ -1,6 +1,11 @@
 #!/bin/sh
 
-ldoc .
+set -Cefu
+
+REPO=$(git worktree list | head -n 1 | cut -f1 -d ' ')
+cd -P "$REPO" || exit
+
+ldoc . 
 git add doc
 git commit -m 'Updated docs.'
 git subtree push --prefix doc origin gh-pages
