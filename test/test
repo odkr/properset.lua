@@ -289,7 +289,7 @@ TestBootstrap = {}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 3)
+        lu.assertEquals(a._val.len, #tables.num_e1_1)
 
         -- Test whether items are added only once
         -- Still only testing the implementation.
@@ -760,10 +760,10 @@ TestBootstrap = {}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 3)
+        lu.assertEquals(a._val.len, #tables.num_e1_1)
 
         -- And some behaviour.
-        lu.assertEquals(#a, 3)
+        lu.assertEquals(#a, #tables.num_e1_1)
         lu.assertEquals(a, b)
 
         -- Test whether items are added only once
@@ -2012,25 +2012,127 @@ TestCoreErrors = {}
     
     --- Tests whether modifications of the set are blocked.
     function TestCoreErrors.TestSetNewIndex ()
+        local err = ".*sets can only be modified using 'add' and 'delete'%."
         local a = Set()
-        lu.assertErrorMsgMatches(".*sets can only be modified using 'add' and 'delete'%.",
-            function() a[1] = 1 end)
-        lu.assertErrorMsgMatches(".*sets can only be modified using 'add' and 'delete'%.",
-            function() a.b = 1 end)
-        lu.assertErrorMsgMatches(".*sets can only be modified using 'add' and 'delete'%.",
-            function() a['a b'] = 1 end)
+        lu.assertErrorMsgMatches(err, function() a[1] = 1 end)
+        lu.assertErrorMsgMatches(err, function() a.b = 1 end)
+        lu.assertErrorMsgMatches(err, function() a['a b'] = 1 end)
     end
 
 
 ---
 -- Finally test set manipulation.
 -- @table TestManipulation Tests functions to manipulate sets.
--- TestManipulation = {}
+TestManipulation = {}
+
+    --- Tests whether deletion works.
+    function TestManipulation.TestSetDelete ()
+        local t = {1, 2}
+        local a = Set({1, 2, 3})
+        a:delete{3}
+
+        lu.assertTrue(simple_has_all(a, t))
+        lu.assertTrue(simple_has_only(a, t))
+        lu.assertEquals(a._val.len, #t)
+
+        -- Let's test behaviour.
+        lu.assertItemsEquals(a:totable(), t)
+        lu.assertEquals(a, Set{1, 2})
+        lu.assertEquals(#a, 2)
+
+        -- Let's test for something weird.
+        -- This should do nothing:
+        a:delete{nil}
+        lu.assertTrue(simple_has_all(a, t))
+        lu.assertTrue(simple_has_only(a, t))
+        lu.assertEquals(a._val.len, #t)
+        lu.assertItemsEquals(a:totable(), t)
+        lu.assertEquals(a, Set{1, 2})
+        lu.assertEquals(#a, 2)    
+
+        a:delete{nil, nil, nil}
+        lu.assertTrue(simple_has_all(a, t))
+        lu.assertTrue(simple_has_only(a, t))
+        lu.assertEquals(a._val.len, #t)
+        lu.assertItemsEquals(a:totable(), t)
+        lu.assertEquals(a, Set{1, 2})
+        lu.assertEquals(#a, 2)    
+
+        -- Test for large-ish numbers of items.
+        local a = Set(tables.num_e3_0)
+        a:delete(tables.num_e3_0)
+        lu.assertTrue(simple_has_all(a, {}))
+        lu.assertTrue(simple_has_only(a, {}))
+        lu.assertEquals(a._val.len, 0)
+        lu.assertItemsEquals(a:totable(), {})
+        lu.assertEquals(#a, 0)
+
+        -- Let's see if sparse arrays are handled correctly.
+        local a = Set{'sparse'}
+        local t = {}
+        t[9] = 'sparse'
+        a:delete(t)
+        lu.assertTrue(simple_has_all(a, {}))
+        lu.assertTrue(simple_has_only(a, {}))
+        lu.assertEquals(a._val.len, 0)
+        lu.assertItemsEquals(a:totable(), {})
+        lu.assertEquals(#a, 0)
+                
+        -- Test whether this confuses `delete`.
+        local a = Set{setmetatable({1}, CompTable)}
+        a:delete{setmetatable({1}, CompTable)}
+        lu.assertEquals(a._tab, {})
+
+        -- Test for large-ish numbers of items.
+        local t = {}
+        local u = {}
+        for i = 1, 100 do t[i] = setmetatable({i}, CompTable) end
+        for i = 1, 99 do u[i] = setmetatable({i}, CompTable) end
+        local exp = {setmetatable({100}, CompTable)}
+        local a = Set(t)
+        a:delete(u)
+        lu.assertItemsEquals(a._tab, exp)
+        lu.assertItemsEquals(a:totable(), exp)
+        lu.assertEquals(#a, #exp)
+
+        -- Repeat for sets.
+        local a = Set{Set{1}}
+        a:delete{Set{1}}
+        lu.assertEquals(a._tab, {})
+
+        -- Test for large-ish numbers of items.
+        local t = {}
+        local u = {}
+        for i = 1, 100 do t[i] = Set{i} end
+        for i = 6, 100 do u[i] = Set{i} end
+        local exp = {Set{1}, Set{2}, Set{3}, Set{4}, Set{5}}
+        local a = Set(t)
+        a:delete(u)
+        lu.assertItemsEquals(a._tab, exp)
+        lu.assertEquals(#a, #exp)
+        
+        local a = Set(Set{1, 2, 3})
+        a:delete(Set{1, 2, 3})
+        lu.assertEquals(a._tab, {})
+        lu.assertItemsEquals(a:totable(), {})
+        lu.assertEquals(#a, 0)
+
+        -- Repeat for mixed types.
+        local exp = {Set{1}, 1, setmetatable({1}, CompTable), 'a'}
+        local a = Set{Set{1}, false, 1, Set{2}, 'a',
+            setmetatable({1}, CompTable), setmetatable({2}, CompTable)}
+        a:delete{setmetatable({2}, CompTable), false, Set{2}}
+        lu.assertTrue(simple_has_all(a, {1, 'a'}))
+        lu.assertTrue(simple_has_only(a, {1, 'a'}))
+        lu.assertEquals(a._val.len, 2)
+        lu.assertEquals(a._tab, {Set{1}, {1}})
+        lu.assertEquals(#a, #exp)
+        lu.assertItemsEquals(a:totable(false), exp)
+    end
 
 
 -- ACTUAL -> EXPECTED
 
--- set manipulation
 
 -- arithmetics
 -- their errors
@@ -2052,12 +2154,6 @@ TestCoreErrors = {}
 -- MARK: old tests below:
 
 
-function TestAccess ()
-    local a = Set(tables.num_e1_1)
-    lu.assertError(function () a[1] = 2 end)
-    lu.assertError(function () a['b'] = 2 end)
-end
-
 
 function TestMap()
     local a = Set{1, 2, 3}
@@ -2072,17 +2168,6 @@ function TestFilter()
     local even = function(i) return i % 2 == 0 end
     lu.assertEquals(a:filter(even), b)
 end
-
-
-function TestDelete()
-    local a = Set{1, 2, 3}
-    a:delete{2, 3}
-    local b = {}
-    for v in a:mems() do table.insert(b, v) end
-    lu.assertItemsEquals(b, {1})
-end
-
-
 
 
 function TestDisjoint()
