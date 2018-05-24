@@ -173,15 +173,16 @@ end
 --      > a
 --      {1}
 function Set:delete (mems)
+    local rem = table.remove
     local vt = self._val
     local vs = vt.mem
     local ts = self._tab
-    -- @todo the same problem as in `add` applies here too.
     for _, v in pairs(mems) do
         if type(v) == 'table' then
             for i = #ts, 1, -1 do
                 if ts[i] == v then
-                    ts[i] = nil
+                    -- `ts[i] = nil` causes a weird bug.
+                    rem(ts, i)
                     break
                 end
             end
