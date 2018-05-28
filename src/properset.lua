@@ -210,28 +210,6 @@ function Set:is_empty ()
 end
 
 
---- Tests whether the set is disjoint from another set.
---
--- @tparam Set other The other set.
---
--- @treturn boolean Whether the two sets are disjoint.
---
--- @raise Raises an error of `other` is not a `Set`
---  (or another implementation of its protocol).
---
--- @usage
---      > a = Set{1}
---      > b = Set{1, 2}
---      > c = Set{3}
---      > a:is_disjoint_from(b)
---      false
---      > a:is_disjoint_from(c)
---      true
-function Set:is_disjoint_from (other)
-    return are_disjoint{self, other}
-end
-
-
 --- Tests whether an object is a member of the set.
 --
 -- @param obj An object.
