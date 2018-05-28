@@ -284,49 +284,6 @@ function Set:mems ()
 end
 
 
---- The intersection of the set with another set.
---
--- @tparam Set other Another set to intersect the set with.
---
--- @treturn Set The intersection of the two sets.
---
--- @raise Raises an error of `other` is not a `Set`
---  (or another implementation of its protocol).
---
--- @usage
---      > a = Set{1}
---      > b = Set{1,2}
---      > c = Set{2}
---      > a:intersection(b)
---      {1}
---      > b:intersection(c)
---      {2}
---      > a:intersection(c)
---      {}
-function Set:intersection (other)
-    return intersection {self, other}
-end
-
-
---- The symmetric difference between the set and another set.
---
--- @tparam Set other The other set.
---
--- @treturn Set The symmetric difference of the two sets.
---
--- @raise Raises an error of `other` is not a `Set`
---  (or another implementation of its protocol).
---
--- @usage
---      > a = Set{1, 2}
---      > b = Set{1, 3}
---      > a:difference(b)
---      {2, 3}
-function Set:difference (other)
-    return difference {self, other}
-end
-
-
 --- The set's power set.
 --
 -- Calculating a power set runs in exponential time, namely, *O*(2^*n*).
@@ -809,6 +766,27 @@ function Set.mt:__eq (other)
 end
 
 
+--- The union of the set and another set.
+--
+-- `a:union(b)` and `a + b` are equivalent.
+--
+-- @tparam Set other The other set.
+--
+-- @treturn Set The union of the two sets.
+--
+-- @raise Raises an error of `other` is not a `Set`
+--  (or another implementation of its protocol).
+--
+-- @usage
+--      > a = Set{1}
+--      > b = Set{2}
+--      > a + b
+--      {1, 2}
+function Set.mt:__add (other)
+    return union{self, other}
+end
+
+
 --- The complement of the set and another set.
 --
 -- `complement(a, b)` and `a - b` are equivalent.
@@ -830,24 +808,24 @@ function Set.mt:__sub (other)
 end
 
 
---- The union of the set and another set.
+--- The intersection of the set and another set.
 --
--- `a:union(b)` and `a + b` are equivalent.
+-- `intersection(a, b)` and `a ^ b` are equivalent.
 --
 -- @tparam Set other The other set.
 --
--- @treturn Set The union of the two sets.
+-- @treturn Set The intersection of the two sets.
 --
 -- @raise Raises an error of `other` is not a `Set`
 --  (or another implementation of its protocol).
 --
 -- @usage
---      > a = Set{1}
---      > b = Set{2}
---      > a + b
---      {1, 2}
-function Set.mt:__add (other)
-    return union{self, other}
+--      > a = Set{1, 2}
+--      > b = Set{2, 3}
+--      > a ^ b
+--      {3}
+function Set.mt:__pow (other)
+    return intersection(self, other)
 end
 
 
