@@ -6,6 +6,10 @@ Allows to handles sets, including complex ones, -- properly.
 `properset` allows to properly handle sets that contain objects, tables,
 or other sets, sports a rich and sane interface, and is well-documented.
 
+`properset` is **not** production-ready. The interface is in flux and
+some functions overflow the stack when given recursive data structures
+as input.
+
 
 Approaches to Handling Sets in Lua
 ----------------------------------
@@ -85,18 +89,20 @@ This is the main problem `properset` solves:
     1
 
 Unfortunately, solving this problem means that elements have to be compared
-one by one, so, for sets of tables or objects, `properset` is slower than
-those approaches; for simpler data types, `properset` also uses
-Ierusalimschy's approach.
+one by one (or hashed; I may implement this in the future). That being so,
+`properset` is slower than those approaches for sets of tables or objects;
+for simpler data types, `properset` also uses Ierusalimschy's approach.
 
 Moreover, `set` and `OrderSet` both sport spartan, undocumented interfaces.
-Scherphof even follows Ierusalimschy in overloading the `*` operator to mean
-'intersect'. However, `*` carries no meaning in set theory. The closest set
-theory comes to multiplications are cartesian products, which have nothing
-to do with intersections of sets. This makes the interface counter-intuitive
+Scherphof even follows Ierusalimschy, who, I conjecture, does this for
+eductional purposes, in overloading the `*` operator to mean 'intersect'.
+But `*` carries no meaning in set theory. The closest set theory comes to
+multiplications are cartesian products, which, however, have nothing to do
+with intersections of sets. This makes the interface counter-intuitive
 and the resulting code hard to understand.
 
-`properset` also aims to have a rich and sane interface.
+`properset` also aims to provide basic set arithmetics and to have a sane
+interface.
 
 
 Documentation
