@@ -51,7 +51,7 @@ to create sets of more complex data types, say, tables or objects:
     > b = {1}
     > set = Set{a, b}
     > n = 0
-    > for k in pairs(set) do n = n + 1 end
+    > for _ in pairs(set) do n = n + 1 end
     > n
     2
 
@@ -70,7 +70,7 @@ to be equal makes no difference:
     true
     > set = Set{a, b}
     > n = 0
-    > for k in pairs(set) do n = n + 1 end
+    > for _ in pairs(set) do n = n + 1 end
     > n
     2
 
