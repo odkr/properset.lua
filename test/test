@@ -1584,7 +1584,7 @@ TestBootstrap = {}
 -- identity and the contents of sets work and can proceed with the remaining
 -- tests.
 
---- Test of core machinery
+--- Tests of core machinery
 --
 -- The following tests are of the core machinery, that is, either
 -- behaviour that is useful for other tests (e.g., conversions),
@@ -1990,6 +1990,7 @@ TestBooleans = {}
         lu.assertFalse(c < b)
     end
 
+-- FIXME: is_disjoint is missing.
 
 ---
 -- I also need to test basic errors.
@@ -2131,18 +2132,30 @@ TestManipulation = {}
     end
 
 
--- ACTUAL -> EXPECTED
+--- Tests of binary arithmetics and set-theory functions
+-- @section binary
+
+---
+-- Basic arithmetic functions.
+-- @table TestCopy Tests for `copy` and `set.copy`.
+
 
 
 -- arithmetics
 -- their errors
 
+
+
 -- remaining methods
 -- their errors
 
+-- ACTUAL -> EXPECTED
+
+
+
+
 -- n-ary arithmetics
 -- their errors
-
 
 -- remaining functions
 -- their errors
