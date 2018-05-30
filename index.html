@@ -91,24 +91,12 @@
 	<td class="summary">Tests whether the set is empty.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:is_disjoint_from">Set:is_disjoint_from (other)</a></td>
-	<td class="summary">Tests whether the set is disjoint from another set.</td>
-	</tr>
-	<tr>
 	<td class="name" nowrap><a href="#Set:has">Set:has (obj)</a></td>
 	<td class="summary">Tests whether an object is a member of the set.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set:mems">Set:mems ()</a></td>
 	<td class="summary">Iterates over all members of the set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:intersection">Set:intersection (other)</a></td>
-	<td class="summary">The intersection of the set with another set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:difference">Set:difference (other)</a></td>
-	<td class="summary">The symmetric difference between the set and another set.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set:power">Set:power ()</a></td>
@@ -191,12 +179,16 @@
 	<td class="summary">Tests whether the set is equal to another set.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#Set.mt:__add">Set.mt:__add (other)</a></td>
+	<td class="summary">The union of the set and another set.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#Set.mt:__sub">Set.mt:__sub (other)</a></td>
 	<td class="summary">The complement of the set and another set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set.mt:__add">Set.mt:__add (other)</a></td>
-	<td class="summary">The union of the set and another set.</td>
+	<td class="name" nowrap><a href="#Set.mt:__pow">Set.mt:__pow (other)</a></td>
+	<td class="summary">The intersection of the set and another set.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set.mt:__tostring">Set.mt:__tostring ()</a></td>
@@ -414,46 +406,6 @@
 
 </dd>
     <dt>
-    <a name = "Set:is_disjoint_from"></a>
-    <strong>Set:is_disjoint_from (other)</strong>
-    </dt>
-    <dd>
-    Tests whether the set is disjoint from another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-        Whether the two sets are disjoint.
-    </ol>
-
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set{<span class="number">1</span>}
-&gt; b = Set{<span class="number">1</span>, <span class="number">2</span>}
-&gt; c = Set{<span class="number">3</span>}
-&gt; a:is_disjoint_from(b)
-<span class="keyword">false</span>
-&gt; a:is_disjoint_from(c)
-<span class="keyword">true</span></pre>
-    </ul>
-
-</dd>
-    <dt>
     <a name = "Set:has"></a>
     <strong>Set:has (obj)</strong>
     </dt>
@@ -512,85 +464,6 @@
 <span class="number">1</span>
 <span class="number">2</span>
 <span class="number">3</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:intersection"></a>
-    <strong>Set:intersection (other)</strong>
-    </dt>
-    <dd>
-    The intersection of the set with another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         Another set to intersect the set with.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-        The intersection of the two sets.
-    </ol>
-
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set{<span class="number">1</span>}
-&gt; b = Set{<span class="number">1</span>,<span class="number">2</span>}
-&gt; c = Set{<span class="number">2</span>}
-&gt; a:intersection(b)
-{<span class="number">1</span>}
-&gt; b:intersection(c)
-{<span class="number">2</span>}
-&gt; a:intersection(c)
-{}</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:difference"></a>
-    <strong>Set:difference (other)</strong>
-    </dt>
-    <dd>
-    The symmetric difference between the set and another set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">other</span>
-            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-         The other set.
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-        The symmetric difference of the two sets.
-    </ol>
-
-    <h3>Raises:</h3>
-     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
-  (or another implementation of its protocol).
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
-&gt; b = Set{<span class="number">1</span>, <span class="number">3</span>}
-&gt; a:difference(b)
-{<span class="number">2</span>, <span class="number">3</span>}</pre>
     </ul>
 
 </dd>
@@ -1296,6 +1169,45 @@
 
 </dd>
     <dt>
+    <a name = "Set.mt:__add"></a>
+    <strong>Set.mt:__add (other)</strong>
+    </dt>
+    <dd>
+    The union of the set and another set. </p>
+
+<p> <code>a:union(b)</code> and <code>a + b</code> are equivalent.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">other</span>
+            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+         The other set.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        The union of the two sets.
+    </ol>
+
+    <h3>Raises:</h3>
+     Raises an error of <code>other</code> is not a <a href="index.html#Set">Set</a>
+  (or another implementation of its protocol).
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>}
+&gt; b = Set{<span class="number">2</span>}
+&gt; a + b
+{<span class="number">1</span>, <span class="number">2</span>}</pre>
+    </ul>
+
+</dd>
+    <dt>
     <a name = "Set.mt:__sub"></a>
     <strong>Set.mt:__sub (other)</strong>
     </dt>
@@ -1335,13 +1247,13 @@
 
 </dd>
     <dt>
-    <a name = "Set.mt:__add"></a>
-    <strong>Set.mt:__add (other)</strong>
+    <a name = "Set.mt:__pow"></a>
+    <strong>Set.mt:__pow (other)</strong>
     </dt>
     <dd>
-    The union of the set and another set. </p>
+    The intersection of the set and another set. </p>
 
-<p> <code>a:union(b)</code> and <code>a + b</code> are equivalent.
+<p> <code>intersection(a, b)</code> and <code>a ^ b</code> are equivalent.
 
 
     <h3>Parameters:</h3>
@@ -1356,7 +1268,7 @@
     <ol>
 
            <span class="types"><a class="type" href="index.html#Set">Set</a></span>
-        The union of the two sets.
+        The intersection of the two sets.
     </ol>
 
     <h3>Raises:</h3>
@@ -1366,10 +1278,10 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; a = Set{<span class="number">1</span>}
-&gt; b = Set{<span class="number">2</span>}
-&gt; a + b
-{<span class="number">1</span>, <span class="number">2</span>}</pre>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; b = Set{<span class="number">2</span>, <span class="number">3</span>}
+&gt; a ^ b
+{<span class="number">3</span>}</pre>
     </ul>
 
 </dd>
@@ -1859,7 +1771,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-05-23 13:50:24 </i>
+<i style="float:right;">Last updated 2018-05-30 10:42:39 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
