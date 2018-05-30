@@ -4,11 +4,14 @@ properset.lua
 Allows to handles sets, including complex ones, -- properly.
 
 `properset` allows to properly handle sets that contain objects, tables,
-or other sets, sports a rich and sane interface, and is well-documented.
+or other sets, provides functions for basic set arithmetics, sports a sane
+interface, and is well-documented.
 
-`properset` is **not** production-ready. The interface is in flux and
-some functions overflow the stack when given recursive data structures
-as input.
+However, `properset` is **not** production-ready. The interface is in flux
+and some functions will overflow the stack when given multidimensional tables,
+including objects and sets, that contain references to themselves as input.
+
+Also, the test suite isn't complete yet.
 
 
 Approaches to Handling Sets in Lua
@@ -47,16 +50,17 @@ to create sets of more complex data types, say, tables or objects:
     > a = {1}
     > b = {1}
     > set = Set{a, b}
-    > for k in pairs(set) do print (k) end
-    table: 0x7ffd87d04680
-    table: 0x7ffd87f0.200
+    > n = 0
+    > for k in pairs(set) do n = n + 1 end
+    > n
+    2
 
 `a` and `b` are, for all intents and purposes, equal, so they should *not*
 both be members of the same set. However, because they are tables, all
 that matters when they are used as keys in other tables is their identity;
 and one and the same they are *not*.
 
-And just in case, you wondered, defining what it means for `a` and `b`
+And just in case you wondered, defining what it means for `a` and `b`
 to be equal makes no difference:
 
     > maximum_equality = {__eq = function () return true end}
@@ -65,9 +69,10 @@ to be equal makes no difference:
     > a == b
     true
     > set = Set{a, b}
-    > for k in pairs(set) do print (k) end
-    table: 0x7ffd87d04680
-    table: 0x7ffd87f0.200
+    > n = 0
+    > for k in pairs(set) do n = n + 1 end
+    > n
+    2
 
 When a table is used as a key in another table, no comparison takes place.
 So defining what it means to be equal makes no difference for that purpose.
@@ -75,7 +80,8 @@ So defining what it means to be equal makes no difference for that purpose.
 Scherphof, Baidakou and the Wiki adapt and expand upon Ierusalimschy's
 approach. Consequently, `set` and `OrderedSet` share this problem.
 
-This is the main problem `properset` solves:
+By contrast, `properset` can handle sets of tables, objects, sets, ...;
+that is, if it has been defined what it means for them to be equal:
 
     > properset = require 'properset'
     > Set = properset.Set
@@ -93,7 +99,7 @@ one by one (or hashed; I may implement this in the future). That being so,
 `properset` is slower than those approaches for sets of tables or objects;
 for simpler data types, `properset` also uses Ierusalimschy's approach.
 
-Moreover, `set` and `OrderSet` both sport spartan, undocumented interfaces.
+Moreover, `set` and `OrderedSet` both sport spartan, undocumented interfaces.
 Scherphof even follows Ierusalimschy, who, I conjecture, does this for
 eductional purposes, in overloading the `*` operator to mean 'intersect'.
 But `*` carries no meaning in set theory. The closest set theory comes to
@@ -101,8 +107,8 @@ multiplications are cartesian products, which, however, have nothing to do
 with intersections of sets. This makes the interface counter-intuitive
 and the resulting code hard to understand.
 
-`properset` also aims to provide basic set arithmetics and to have a sane
-interface.
+By contrast, `properset` also aims to provide basic set arithmetics and 
+to have a sane interface.
 
 
 Documentation
