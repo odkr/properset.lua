@@ -21,6 +21,8 @@ local properset = {}
 
 local assert = assert
 local error = error
+local pcall = pcall
+local debug = debug
 local table = table
 local next = next
 local ipairs = ipairs
@@ -222,11 +224,33 @@ end
 --      true
 --      > a:has(0)
 --      false
-function Set:has (obj)
+function Set:has (obj)    
     if type(obj) == 'table' then
+        -- To avoid problems with recursive data structures, which 
+        -- may cause a cycle `Set.mt.__eq` -> `Set.mt.__le` -> 
+        -- `Set.has` -> `Set.mt.__eq`, we need to check whether
+        -- we have already seen `obj`.
+        -- 
+        -- I am using `debug.getlocal` to implement dynamic scoping.
+        -- This ain't pretty, but since the cycle stretches over three
+        -- methods, some of which are metamethods, it would be hard to
+        -- pass an extra argument. And I doubt that adding a 'static'
+        -- variable to `has` would be safe in a threaded environment --
+        -- or much faster for that matter.
+        local getlocal = debug.getlocal
+        -- The current function is level 1, one cycle has a length of 3, and
+        -- we need to add 1 level each for `pcall` and the lambda; hence 6.
+        local n = 6
+        while true do
+            -- `obj` is the second variable that has been defined.
+            local s, _, v = pcall(function () return getlocal(n, 2) end)
+            if not s then break end
+            if rawequal(obj, v) then return true end
+            -- The cycle has a length of three.
+            n = n + 3
+        end        
         local ts = self._tab
-        local n = #ts
-        for i = 1, n do
+        for i = 1, #ts do
             if ts[i] == obj then return true end
         end
         return false
@@ -446,10 +470,28 @@ end
 
 --- The members of the set as a table.
 --
--- If the set contains other sets, these will be converted to tables, too.
--- Set `rec` to false to avoid this.
+-- @treturn table All members of the set.
 --
--- @tparam[opt=true] boolean rec Whether to convert members to tables, too.
+-- @usage
+--      > a = Set{1, 2, 3}
+--      > r = a:totable()
+--      > table.unpack(r)
+--      1       2       3
+function Set:totable ()
+    local res = {}
+    local n = 0
+    for i in self:mems() do
+        n = n + 1
+        res[n] = i
+    end
+    return res
+end
+
+
+--- The members of the set as a table, recursively.
+--
+-- Different to `Set.totable`, this method recurses into members of sets.
+-- That is, it will return a higher-rank set as a multidimensional table.
 --
 -- @treturn table All members of the set.
 --
@@ -458,20 +500,18 @@ end
 --      > r = a:totable()
 --      > table.unpack(r)
 --      1       2       3
-function Set:totable (rec)
-    if rec == nil then rec = true end
+function Set:rtotable (s)
     local is_set = is_set
-    local totable = self.totable
-    local res = {}
-    local n = 0
-    -- @todo This fails for recursive sets.
-    -- Arguably, such sets shouldn't exist.
-    for i in self:mems() do
-        n = n + 1
-        if rec and is_set(i) then
-            res[n] = totable(i)
-        else
-            res[n] = i
+    local res = self:totable()
+    local s = s or {}
+    s[self] = res
+    for i = 0, #res do
+        if is_set(res[i]) then
+            if s[res[i]] then
+                res[i] = s[res[i]]
+            else
+                res[i] = res[i]:rtotable(s)
+            end
         end
     end
     return res
@@ -617,6 +657,7 @@ end
 --      > #a
 --      3
 function Set.mt:__len ()
+    -- @todo maybe counting as needed is faster than keeping track.
     return self._val.len + #self._tab
 end
 
@@ -739,8 +780,8 @@ end
 --      true
 function Set.mt:__eq (other)
     if not is_set(other) or not is_set(self) then return false end
-    if #self == #other then return self <= other end
-    return false
+    if #self ~= #other then return false end 
+    return self <= other
 end
 
 
@@ -817,14 +858,24 @@ end
 --      > a = Set{1, Set{2, 3}, 4}
 --      > tostring(a)
 --      {1, {2, 3}, 4}
-function Set.mt:__tostring ()
+function Set.mt:__tostring (s)
     local tostring = tostring
     local is_set = is_set
+    local s = s or {}
     local t = {}
     local n = 0
     for v in self:mems() do
         n = n + 1
-        t[n] = tostring(v)
+        if is_set(v) then
+            if not s[v] then
+                s[v] = true
+                t[n] = getmetatable(v).__tostring(v, s)
+            else
+                return '(cycle)'
+            end
+        else
+            t[n] = tostring(v)
+        end
     end
     return table.concat({'{', '}'}, table.concat(t, ', '))
 end
@@ -1068,9 +1119,15 @@ end
 --      > properset.is_set(b)
 --      false
 function is_set (obj)
+    local rawequal = rawequal
     if type(obj) == 'table' then
-        for k, v in pairs(Set) do
-            if obj[k] == nil then return false end
+        local meta = getmetatable(obj)
+        if meta == nil then return false end
+        for k in pairs(Set.mt) do 
+            if meta[k] == nil then return false end
+        end
+        for k in pairs(Set) do
+            if rawequal(obj[k], nil) then return false end
         end
         return true
     end
@@ -1131,8 +1188,10 @@ end
 
 --- Copies a table recursively.
 --
--- Handles metatables, recursive structures, tables as keys, metatables,
+-- Handles metatables, simple recursive structures, tables as keys,
 -- avoids the `__pairs` metemethod, and can handle instances of `Set`.
+--
+-- *Cannot* handle cycles.
 --
 -- @param obj Object or value of an arbitrary type.
 --
