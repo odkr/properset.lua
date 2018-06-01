@@ -22,7 +22,6 @@ local properset = {}
 local assert = assert
 local error = error
 local pcall = pcall
-local debug = debug
 local table = table
 local next = next
 local ipairs = ipairs
@@ -30,13 +29,22 @@ local pairs = pairs
 local getmetatable = getmetatable
 local setmetatable = setmetatable
 local string = string
+local tonumber = tonumber
 local tostring = tostring
 local type = type
 local rawequal = rawequal
 
-local print = print
+local debug = debug
+local getlocal = debug.getlocal
+local upvalueid = debug.upvalueid
 
 local math = math
+local huge = math.huge
+
+
+-- DEBUG
+local print = print
+
 
 local _ENV = properset
 
@@ -130,7 +138,7 @@ Set.mt.__index = Set
 --      {1, 2, 3}
 function Set:new (elems)
     self = self or Set
-    local set = {_val = {len = 0, mem = {}}, _tab = {}}
+    local set = {_val = {len = 0, mem = {}}, _tab = {}, _meta = {}}
     setmetatable(set, self.mt)
     if elems then set:add(elems) end
     return set
@@ -138,6 +146,23 @@ end
 
 -- Convenience.
 setmetatable(Set, {__call = Set.new})
+
+
+-- Returns the ID of the set.
+--
+-- @treturn number The ID.
+--
+-- @usage
+--      > a = Set()
+--      > a:id()
+--      140232111557888
+function Set:id ()
+    local m = self._meta
+    if m.id then return m.id end
+    local repr = upvalueid(function () return self end, 1)
+    m.id = tonumber(tostring(repr):match(': (0x%x+)'))
+    return m.id
+end
 
 
 --- Adds elements to a set.
@@ -245,7 +270,7 @@ function Set:has (obj)
         -- pass an extra argument. And I doubt that adding a 'static'
         -- variable to `has` would be safe in a threaded environment --
         -- or much faster for that matter.
-        local getlocal = debug.getlocal
+        local getlocal = getlocal
         -- The current function is level 1, one cycle has a length of 3, and
         -- we need to add 1 level each for `pcall` and the lambda; hence 6.
         local n = 6
@@ -866,7 +891,7 @@ function Set.mt:__tostring (s)
                 s[v] = true
                 t[n] = getmetatable(v).__tostring(v, s)
             else
-                return '(cycle)'
+                return string.format('(cycle: 0x%x)', v:id())
             end
         else
             t[n] = tostring(v)
@@ -1174,7 +1199,7 @@ function rank (obj, s)
     local res = 1
     for v in obj:mems() do
         if is_set(v) then
-            if s[v] then return math.huge end
+            if s[v] then return huge end
             s[v] = true
             r = rank(v, s) + 1
             if r > res then res = r end
