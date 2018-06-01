@@ -1271,8 +1271,6 @@ end
 
 --- The empty set.
 --
--- This set cannot be modified via `add` and `delete`.
---
 -- @field emptyset The empty set (`ImmutableSet:new()`).
 emptyset = ImmutableSet:new()
 
@@ -1282,14 +1280,14 @@ emptyset = ImmutableSet:new()
 --
 -- Currently used by:
 --
---  * `Set.totable`
---  * `Set.of_rankn`
+--  * `Set:totable`
+--  * `Set:of_rankn`
 RECURSIVE = 1
 
 --- If this flag is passed to `Set.id`,
 -- the set's ID is returned as a number.
 --
--- Only used by `Set.id`.
+-- Only used by `Set:id`.
 ASNUM = 1
 
 
