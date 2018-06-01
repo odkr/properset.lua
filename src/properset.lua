@@ -1006,7 +1006,7 @@ end
 setmetatable(ImmutableSet, Set.mt)
 
 
---- n-ary set arithmetics
+--- Set arithmetics
 -- @section arithmetics
 
 --- Tests whether two or more sets are disjoint.
