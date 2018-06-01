@@ -47,11 +47,15 @@
 <p>Allows to handles sets, including complex ones, &mdash; properly.</p>
 
 <p><a href="../index.html#">properset</a> allows to properly handle sets that contain objects, tables,
-or other sets, sports a rich and sane interface, and is well-documented.</p>
+or other sets, provides functions for basic set arithmetics, sports a sane
+interface, and is well-documented.</p>
 
-<p><a href="../index.html#">properset</a> is <strong>not</strong> production-ready. The interface is in flux and
-some functions overflow the stack when given recursive data structures
-as input.</p>
+<p>However, <a href="../index.html#">properset</a> is <strong>not</strong> production-ready. The interface is in flux
+and some functions will overflow the stack when given cyclic tables,
+including objects and sets, as input. (Tables that refer to themselves
+should be fine.)</p>
+
+<p>Also, the test suite isn&rsquo;t complete yet.</p>
 
 <h2>Approaches to Handling Sets in Lua</h2>
 
@@ -95,9 +99,10 @@ to create sets of more complex data types, say, tables or objects:</p>
 &gt; a = {<span class="number">1</span>}
 &gt; b = {<span class="number">1</span>}
 &gt; set = Set{a, b}
-&gt; <span class="keyword">for</span> k <span class="keyword">in</span> <span class="global">pairs</span>(set) <span class="keyword">do</span> <span class="global">print</span> (k) <span class="keyword">end</span>
-<span class="global">table</span>: <span class="number">0x7ffd87d04680</span>
-<span class="global">table</span>: <span class="number">0x7ffd87f0</span>.<span class="number">200</span>
+&gt; n = <span class="number">0</span>
+&gt; <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="global">pairs</span>(set) <span class="keyword">do</span> n = n + <span class="number">1</span> <span class="keyword">end</span>
+&gt; n
+<span class="number">2</span>
 </pre>
 
 
@@ -106,7 +111,7 @@ both be members of the same set. However, because they are tables, all
 that matters when they are used as keys in other tables is their identity;
 and one and the same they are <em>not</em>.</p>
 
-<p>And just in case, you wondered, defining what it means for <code>a</code> and <code>b</code>
+<p>And just in case you wondered, defining what it means for <code>a</code> and <code>b</code>
 to be equal makes no difference:</p>
 
 <pre>
@@ -116,9 +121,10 @@ to be equal makes no difference:</p>
 &gt; a == b
 <span class="keyword">true</span>
 &gt; set = Set{a, b}
-&gt; <span class="keyword">for</span> k <span class="keyword">in</span> <span class="global">pairs</span>(set) <span class="keyword">do</span> <span class="global">print</span> (k) <span class="keyword">end</span>
-<span class="global">table</span>: <span class="number">0x7ffd87d04680</span>
-<span class="global">table</span>: <span class="number">0x7ffd87f0</span>.<span class="number">200</span>
+&gt; n = <span class="number">0</span>
+&gt; <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="global">pairs</span>(set) <span class="keyword">do</span> n = n + <span class="number">1</span> <span class="keyword">end</span>
+&gt; n
+<span class="number">2</span>
 </pre>
 
 
@@ -128,7 +134,8 @@ So defining what it means to be equal makes no difference for that purpose.</p>
 <p>Scherphof, Baidakou and the Wiki adapt and expand upon Ierusalimschy&rsquo;s
 approach. Consequently, <code>set</code> and <code>OrderedSet</code> share this problem.</p>
 
-<p>This is the main problem <a href="../index.html#">properset</a> solves:</p>
+<p>By contrast, <a href="../index.html#">properset</a> can handle sets of tables, objects, sets, &hellip;;
+that is, if it has been defined what it means for them to be equal:</p>
 
 <pre>
 &gt; properset = <span class="global">require</span> <span class="string">'properset'</span>
@@ -149,7 +156,7 @@ one by one (or hashed; I may implement this in the future). That being so,
 <a href="../index.html#">properset</a> is slower than those approaches for sets of tables or objects;
 for simpler data types, <a href="../index.html#">properset</a> also uses Ierusalimschy&rsquo;s approach.</p>
 
-<p>Moreover, <code>set</code> and <code>OrderSet</code> both sport spartan, undocumented interfaces.
+<p>Moreover, <code>set</code> and <code>OrderedSet</code> both sport spartan, undocumented interfaces.
 Scherphof even follows Ierusalimschy, who, I conjecture, does this for
 eductional purposes, in overloading the <code><em></code> operator to mean &lsquo;intersect&rsquo;.
 But <code></em></code> carries no meaning in set theory. The closest set theory comes to
@@ -157,8 +164,8 @@ multiplications are cartesian products, which, however, have nothing to do
 with intersections of sets. This makes the interface counter-intuitive
 and the resulting code hard to understand.</p>
 
-<p><a href="../index.html#">properset</a> also aims to provide basic set arithmetics and to have a sane
-interface.</p>
+<p>By contrast, <a href="../index.html#">properset</a> also aims to provide basic set arithmetics and
+to have a sane interface.</p>
 
 <h2>Documentation</h2>
 
@@ -235,7 +242,7 @@ SOFTWARE.</p>
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-05-30 10:43:33 </i>
+<i style="float:right;">Last updated 2018-06-01 14:43:37 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
