@@ -8,8 +8,9 @@ or other sets, provides functions for basic set arithmetics, sports a sane
 interface, and is well-documented.
 
 However, `properset` is **not** production-ready. The interface is in flux
-and some functions will overflow the stack when given multidimensional tables,
-including objects and sets, that contain references to themselves as input.
+and some functions will overflow the stack when given cyclic tables, 
+including objects and sets, as input. (Tables that refer to themselves
+should be fine.)
 
 Also, the test suite isn't complete yet.
 
