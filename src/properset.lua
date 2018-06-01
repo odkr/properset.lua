@@ -36,11 +36,13 @@ local rawequal = rawequal
 
 local print = print
 
+local math = math
+
 local _ENV = properset
 
 
--- Constants
--- =========
+-- Private constants
+-- =================
 
 -- Error message shown on attempts to add a set to itself.
 local SELFMEMERR = "sets cannot be members of themselves."
@@ -53,6 +55,12 @@ local NOTASETERR = 'expected Set, got a %s.'
 
 -- Format for error shown if `add` or `delete` are invoked for `ImmutableSet`.
 local IMMUTABERR = 'set is immutable.'
+
+
+-- Public constants
+-- ================
+
+RECURSIVE = 1
 
 
 -- Private utility functions
@@ -470,6 +478,10 @@ end
 
 --- The members of the set as a table.
 --
+-- @tparam number flags If `properset.RECURSIVE` is passed as flag, and
+--  the set is of a higher rank than 1, then convert all sets that are
+--  members of that set to tables, too, and so on.
+--
 -- @treturn table All members of the set.
 --
 -- @usage
@@ -477,41 +489,21 @@ end
 --      > r = a:totable()
 --      > table.unpack(r)
 --      1       2       3
-function Set:totable ()
+function Set:totable (flags, s)
+    local is_set = is_set
+    local flags = flags or 0
+    local s = s or {}
     local res = {}
     local n = 0
+    s[self] = res
     for i in self:mems() do
         n = n + 1
-        res[n] = i
-    end
-    return res
-end
-
-
---- The members of the set as a table, recursively.
---
--- Different to `Set.totable`, this method recurses into members of sets.
--- That is, it will return a higher-rank set as a multidimensional table.
---
--- @treturn table All members of the set.
---
--- @usage
---      > a = Set{1, 2, 3}
---      > r = a:totable()
---      > table.unpack(r)
---      1       2       3
-function Set:rtotable (s)
-    local is_set = is_set
-    local res = self:totable()
-    local s = s or {}
-    s[self] = res
-    for i = 0, #res do
-        if is_set(res[i]) then
-            if s[res[i]] then
-                res[i] = s[res[i]]
-            else
-                res[i] = res[i]:rtotable(s)
+        if flags & RECURSIVE ~= 0 and is_set(i) then
+            if s[i] then res[n] = s[i]
+                    else res[n] = i:totable(flags, s)
             end
+        else
+            res[n] = i
         end
     end
     return res
@@ -577,13 +569,16 @@ end
 --      > b = a:power()
 --      > b:flatten()
 --      {1, 2, 3, 4}
-function Set:flatten ()
+function Set:flatten (s)
+    s = s or {}
     local is_set = is_set
     local add = Set.add
     local res = Set:new()
     for v in self:mems() do
         if is_set(v) then
-            res = res + v:flatten()
+            if s[v] then return emptyset end
+            s[v] = true
+            res = res + v:flatten(s)
         else
             add(res, {v})
         end
@@ -1171,14 +1166,17 @@ end
 --      > b = Set{Set{Set{Set{}}, Set{}, 1}, 2}
 --      > properset.rank(b)
 --      4
-function rank (obj)
+function rank (obj, s)
     local is_set = is_set
-    local rank = rank
     if not is_set(obj) then return 0 end
+    s = s or {}
+    local rank = rank
     local res = 1
     for v in obj:mems() do
         if is_set(v) then
-            r = rank(v) + 1
+            if s[v] then return math.huge end
+            s[v] = true
+            r = rank(v, s) + 1
             if r > res then res = r end
         end
     end
