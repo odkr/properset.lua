@@ -830,7 +830,7 @@ end
 
 --- The union of the set and another set.
 --
--- `a:union(b)` and `a + b` are equivalent.
+-- `union(a, b)` and `a + b` are equivalent.
 --
 -- @tparam Set other The other set.
 --
