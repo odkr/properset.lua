@@ -76,6 +76,7 @@ local IMMUTABERR = 'set is immutable.'
 -- Currently used by:
 --
 --  * `Set.totable`
+--  * `Set.of_rankn`
 RECURSIVE = 1
 
 --- Whether or not to return IDs as numbers.
