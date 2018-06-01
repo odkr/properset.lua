@@ -71,7 +71,8 @@ local IMMUTABERR = 'set is immutable.'
 --- Flags
 -- @section flags
 
---- Whether to process sets recursively.
+--- If this flag is passed to a method that understands it,
+-- sets are processed recursively.
 --
 -- Currently used by:
 --
@@ -79,7 +80,8 @@ local IMMUTABERR = 'set is immutable.'
 --  * `Set.of_rankn`
 RECURSIVE = 1
 
---- Whether or not to return IDs as numbers.
+--- If this flag is passed to `Set.id`,
+-- the set's ID is returned as a number.
 --
 -- Only used by `Set.id`.
 ASNUM = 1
@@ -173,7 +175,7 @@ setmetatable(Set, {__call = Set.new})
 --      > a = Set()
 --      > a:id()
 --      Set: 0x7f8a555d4df0
---      > a:id(propertyset.ASNUM)
+--      > a:id(properset.ASNUM)
 --      140232114392560
 function Set:id (flags)
     flags = flags or 0
