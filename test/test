@@ -269,7 +269,11 @@ TestBootstrap = {}
 
         -- Test prototyping.
         local b = {}
-        setmetatable(b, {__index = a})
+        local a_mt = getmetatable(a)
+        local b_mt = {}
+        for i = 0, #a_mt do b_mt[i] = a_mt[i] end
+        b_mt.__index = a
+        setmetatable(b, b_mt)
         lu.assertTrue(properset.is_set(b))
 
         -- Test sets of sets.
@@ -1711,7 +1715,7 @@ TestConversion = {}
             a:add{b}
             table.insert(t, u)
         end
-        lu.assertItemsEquals(a:totable(), t)
+        lu.assertItemsEquals(a:totable(properset.RECURSIVE), t)
     end
 
     --- Test conversion to strings.
@@ -2182,19 +2186,6 @@ function TestFilter()
     lu.assertEquals(a:filter(even), b)
 end
 
-
-function TestDisjoint()
-    local a = Set{1, 2}
-    local b = Set{2, 3}
-    local c = Set{3, 4}
-    lu.assertFalse(a:is_disjoint_from(b))
-    lu.assertFalse(b:is_disjoint_from(c))
-    lu.assertFalse(b:is_disjoint_from(a))
-    lu.assertFalse(c:is_disjoint_from(b))
-    lu.assertTrue(a:is_disjoint_from(c))
-    lu.assertTrue(c:is_disjoint_from(a))
-end
-
 function TestComplement()
     local a = Set{1, 2}
     local b = Set{2}
@@ -2207,24 +2198,6 @@ function TestUnion()
     local b = Set{3}
     local c = Set{1, 2, 3}
     lu.assertEquals(a + b, c)
-end
-
-function TestIntersection()
-    local a = Set{1}
-    local b = Set{1, 2}
-    local c = Set{2}
-    lu.assertEquals(a:intersection(b), Set{1})
-    lu.assertEquals(a:intersection(c), Set())
-    lu.assertEquals(b:intersection(c), Set{2})
-    lu.assertEquals(b:intersection(a), Set{1})
-    lu.assertEquals(c:intersection(a), Set())
-    lu.assertEquals(c:intersection(b), Set{2})
-end
-
-function TestDifference()
-    local a = Set{1, 2}
-    local b = Set{1, 3}
-    lu.assertEquals(a:difference(b), Set{2, 3})
 end
 
 function TestPower()
@@ -2245,13 +2218,12 @@ function TestRankN()
     lu.assertEquals(a:of_rankn(2), Set{Set{2,
         Set{3, 4}, Set{5}}})
     lu.assertEquals(a:of_rankn(3), emptyset)
-    lu.assertEquals(a:of_rankn(0, true), Set{1, 2, 3, 4, 5, 6})
-    lu.assertEquals(a:of_rankn(1, true), Set{Set{3, 4},
+    lu.assertEquals(a:of_rankn(0, properset.RECURSIVE), Set{1, 2, 3, 4, 5, 6})
+    lu.assertEquals(a:of_rankn(1, properset.RECURSIVE), Set{Set{3, 4},
         Set{5}, Set{6}})
-    lu.assertEquals(a:of_rankn(2, true), Set{Set{2,
+    lu.assertEquals(a:of_rankn(2, properset.RECURSIVE), Set{Set{2,
         Set{3, 4}, Set{5}}})
-    lu.assertEquals(a:of_rankn(3, true), emptyset)
-
+    lu.assertEquals(a:of_rankn(3, properset.RECURSIVE), emptyset)
 end
 
 function TestLevelN()
@@ -2315,7 +2287,7 @@ end
 
 function TestRankF()
     local a = 0
-    local b = Set{}
+    local b = Set{a}
     local c = Set{b}
     local d = Set{c}
     local e = Set{d}
