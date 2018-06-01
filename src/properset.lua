@@ -65,28 +65,6 @@ local NOTASETERR = 'expected Set, got a %s.'
 local IMMUTABERR = 'set is immutable.'
 
 
--- Public constants
--- ================
-
---- Flags
--- @section flags
-
---- If this flag is passed to a method that understands it,
--- sets are processed recursively.
---
--- Currently used by:
---
---  * `Set.totable`
---  * `Set.of_rankn`
-RECURSIVE = 1
-
---- If this flag is passed to `Set.id`,
--- the set's ID is returned as a number.
---
--- Only used by `Set.id`.
-ASNUM = 1
-
-
 -- Private utility functions
 -- =========================
 
@@ -1270,25 +1248,25 @@ end
 --      > table.insert(a, 4)
 --      > table.unpack(r[1])
 --      1       2       3
-function copy(obj, seen)
+function copy (obj, s)
     -- Borrows from:
     -- * <https://gist.github.com/tylerneylon/81333721109155b2d244>
     -- * <http://lua-users.org/wiki/CopyTable>
     if type(obj) ~= 'table' then return obj end
     if is_set(obj) then return obj:copy() end
-    if seen and seen[obj] then return seen[obj] end
+    if s and s[obj] then return s[obj] end
     local copy = copy
     local res = setmetatable({}, getmetatable(obj))
-    seen = seen or {}
-    seen[obj] = res
+    s = s or {}
+    s[obj] = res
     for k, v in next, obj, nil do
-        res[copy(k, seen)] = copy(v, seen)
+        res[copy(k, s)] = copy(v, s)
     end
     return res
 end
 
 
---- Useful constants
+--- Constants 
 -- @section constants
 
 --- The empty set.
@@ -1297,6 +1275,23 @@ end
 --
 -- @field emptyset The empty set (`ImmutableSet:new()`).
 emptyset = ImmutableSet:new()
+
+
+--- If this flag is passed to a method that understands it,
+-- sets are processed recursively.
+--
+-- Currently used by:
+--
+--  * `Set.totable`
+--  * `Set.of_rankn`
+RECURSIVE = 1
+
+--- If this flag is passed to `Set.id`,
+-- the set's ID is returned as a number.
+--
+-- Only used by `Set.id`.
+ASNUM = 1
+
 
 
 return properset
