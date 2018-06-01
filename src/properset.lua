@@ -68,7 +68,20 @@ local IMMUTABERR = 'set is immutable.'
 -- Public constants
 -- ================
 
+--- Flags
+-- @section flags
+
+--- Whether to process sets recursively.
+--
+-- Currently used by:
+--
+--  * `Set.totable`
 RECURSIVE = 1
+
+--- Whether or not to return IDs as numbers.
+--
+-- Only used by `Set.id`.
+ASNUM = 1
 
 
 -- Private utility functions
@@ -148,20 +161,32 @@ end
 setmetatable(Set, {__call = Set.new})
 
 
--- Returns the ID of the set.
+--- Returns the ID of the set.
+--
+-- @tparam[opt=0] number flags If flags is equal to `ASNUM`, 
+--  then the ID is returned as a number. 
 --
 -- @treturn number The ID.
 --
 -- @usage
 --      > a = Set()
 --      > a:id()
---      140232111557888
-function Set:id ()
+--      Set: 0x7f8a555d4df0
+--      > a:id(propertyset.ASNUM)
+--      140232114392560
+function Set:id (flags)
+    flags = flags or 0
     local m = self._meta
-    if m.id then return m.id end
-    local repr = upvalueid(function () return self end, 1)
-    m.id = tonumber(tostring(repr):match(': (0x%x+)'))
-    return m.id
+    if m.id == nil then
+        -- Needed to make `upvalueid` return this method's `self`,
+        -- rather than the caller's.
+        local s = self
+        local r = upvalueid(function () return s end, 1)
+        m.id = tonumber(tostring(r):match(': (0x%x+)'))
+    end
+    if flags & ASNUM == ASNUM then return m.id
+                              else return string.format('Set: 0x%x', m.id)
+    end
 end
 
 
@@ -372,10 +397,12 @@ end
 
 --- All members of rank *n*.
 --
--- `a:flatten()` and `a:of_rankn(0, true)` are equivalent.
+-- `a:flatten()` and `a:of_rankn(0, propertyset.RECURSIVE)` are equivalent.
 --
 -- @tparam number n The rank.
--- @tparam[opt=false] boolean rec Whether to recurse into members, too.
+-- @tparam[opt=0] number flags If equal to `RECURSIVE`, and `rank(set)` is > 1, 
+--  then members of the set that are sets, members of those sets that are 
+--  sets, ..., are converetd to tables, too.
 --
 -- @treturn Set The members of rank *n*.
 --
@@ -401,16 +428,20 @@ end
 --      {}
 --
 -- @see rank
-function Set:of_rankn (n, rec)
-    if rec == nil then rec = false end
-    if n == 0 and rec then return self:flatten() end
+function Set:of_rankn (n, flags)
+    -- @fixme: this one is broken: for a set {1, {2, {3, {4}}}}
+    -- rankof (1, RECURSIVE) returns {} instead of {{1}}.
+    flags = flags or 0
+    if n == 0 and flags & RECURSIVE == RECURSIVE then return self:flatten() end
     local is_set = is_set
     local rank = rank
     local add = Set.add
     local res = Set:new()
     for v in self:mems() do
         if rank(v) == n then add(res, {v}) end
-        if rec and is_set(v) then res = res + v:of_rankn(n, rec) end
+        if flags & RECURSIVE == RECURSIVE and is_set(v) then
+            res = res + v:of_rankn(n, rec)
+        end
     end
     return res
 end
@@ -503,9 +534,9 @@ end
 
 --- The members of the set as a table.
 --
--- @tparam number flags If `properset.RECURSIVE` is passed as flag, and
---  the set is of a higher rank than 1, then convert all sets that are
---  members of that set to tables, too, and so on.
+-- @tparam[opt=0] number flags If equal to `RECURSIVE`, and `rank(set)` is > 1, 
+--  then members of the set that are sets, members of those sets that are 
+--  sets, ..., are converetd to tables, too.
 --
 -- @treturn table All members of the set.
 --
@@ -523,7 +554,7 @@ function Set:totable (flags, s)
     s[self] = res
     for i in self:mems() do
         n = n + 1
-        if flags & RECURSIVE ~= 0 and is_set(i) then
+        if flags & RECURSIVE == RECURSIVE and is_set(i) then
             if s[i] then res[n] = s[i]
                     else res[n] = i:totable(flags, s)
             end
@@ -587,6 +618,8 @@ end
 
 --- The non-set members of the set and its descendants.
 --
+-- @param s
+--
 -- @treturn Set A set with all non-set members of the set and its descendants.
 --
 -- @usage
@@ -594,18 +627,27 @@ end
 --      > b = a:power()
 --      > b:flatten()
 --      {1, 2, 3, 4}
-function Set:flatten (s)
-    s = s or {}
+function Set:flatten ()
     local is_set = is_set
-    local add = Set.add
     local res = Set:new()
-    for v in self:mems() do
-        if is_set(v) then
-            if s[v] then return emptyset end
-            s[v] = true
-            res = res + v:flatten(s)
+    local add = res.add
+    local s = {}
+    local q = self:totable()
+    local l = #q
+    local n = 0
+    while n <= l do
+        n = n + 1
+        if is_set(q[n]) then
+            if not s[q[n]] then
+                s[q[n]] = true
+                local t = q[n]:totable()
+                for i = 1, #t do
+                    l = l + 1
+                    q[l] = t[i]
+                end
+            end
         else
-            add(res, {v})
+            add(res, {q[n]})
         end
     end
     return res
@@ -870,8 +912,6 @@ end
 
 --- A string representation of the set.
 --
--- `__tostring(a)` and `tostring(a)` are equivalent.
---
 -- @treturn string A string that represents the set.
 --
 -- @usage
@@ -891,7 +931,7 @@ function Set.mt:__tostring (s)
                 s[v] = true
                 t[n] = getmetatable(v).__tostring(v, s)
             else
-                return string.format('(cycle: 0x%x)', v:id())
+                return string.format('(cycle: 0x%x)', v:id(ASNUM))
             end
         else
             t[n] = tostring(v)
