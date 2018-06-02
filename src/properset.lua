@@ -33,6 +33,7 @@ local tonumber = tonumber
 local tostring = tostring
 local type = type
 local rawequal = rawequal
+local rawset = rawset
 
 local debug = debug
 local getlocal = debug.getlocal
@@ -349,7 +350,7 @@ end
 --      {{0, 1}, {1}, {}, {0}}
 function Set:power ()
     local dad = direct_add
-    local cop = Set.copy
+    local cop = copy
     local res = Set:new()
     local rt = res._tab
     local n = 1
@@ -363,16 +364,6 @@ function Set:power ()
         end
     end
     return res
-end
-
-
---- The set's rank.
---
--- @treturn number The set's rank.
---
--- @see rank
-function Set:rank ()
-    return rank(self)
 end
 
 
@@ -421,7 +412,7 @@ function Set:of_rankn (n, flags)
     for v in self:mems() do
         if rank(v) == n then add(res, {v}) end
         if flags & RECURSIVE == RECURSIVE and is_set(v) then
-            res = res + v:of_rankn(n, rec)
+            res = res + v:of_rankn(n, flags)
         end
     end
     return res
@@ -456,7 +447,7 @@ end
 function Set:at_leveln (n)
     assert(n > 0, "'n' must be greater than 0.")
     if n == 1 then
-        return self:copy()
+        return copy(self)
     else
         local is_set = is_set
         local add = Set.add
@@ -631,43 +622,6 @@ function Set:flatten ()
             add(res, {q[n]})
         end
     end
-    return res
-end
-
-
---- Copies a set.
---
--- Copies are deep.
---
--- You should *never* need this function.
---
--- Instead of:
---
---      a = Set{1, 2, 3}
---      b = a:copy()
---      b:add{4}
---
--- Write:
---
---      a = Set{1, 2, 3}
---      b = a + Set{4}
---
--- @tparam Set set A set.
---
--- @return The same set, but a different instance.
---
--- @usage
---      > a = Set{1, 2, 3}
---      > r = a:copy()
---      > r
---      {1, 2, 3}
---      > a:add{4}
---      > r
---      {1, 2, 3}
-function Set:copy ()
-    local res = Set:new()
-    res._val = copy(self._val)
-    res._tab = copy(self._tab)
     return res
 end
 
@@ -1222,7 +1176,7 @@ function rank (obj, s)
         if is_set(v) then
             if s[v] then return huge end
             s[v] = true
-            r = rank(v, s) + 1
+            local r = rank(v, s) + 1
             if r > res then res = r end
         end
     end
@@ -1232,10 +1186,8 @@ end
 
 --- Copies a table recursively.
 --
--- Handles metatables, simple recursive structures, tables as keys,
--- avoids the `__pairs` metemethod, and can handle instances of `Set`.
---
--- *Cannot* handle cycles.
+-- Handles metatables, recursive structures, tables as keys, and
+-- avoids the `__pairs` and `__newindex` metamethods.
 --
 -- @param obj Object or value of an arbitrary type.
 --
@@ -1253,14 +1205,13 @@ function copy (obj, s)
     -- * <https://gist.github.com/tylerneylon/81333721109155b2d244>
     -- * <http://lua-users.org/wiki/CopyTable>
     if type(obj) ~= 'table' then return obj end
-    if is_set(obj) then return obj:copy() end
     if s and s[obj] then return s[obj] end
     local copy = copy
     local res = setmetatable({}, getmetatable(obj))
     s = s or {}
     s[obj] = res
     for k, v in next, obj, nil do
-        res[copy(k, s)] = copy(v, s)
+        rawset(res, copy(k, s), copy(v, s))
     end
     return res
 end
