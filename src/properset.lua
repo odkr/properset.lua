@@ -36,6 +36,7 @@ local rawequal = rawequal
 local rawset = rawset
 
 local debug = debug
+local getinfo = debug.getinfo
 local getlocal = debug.getlocal
 local upvalueid = debug.upvalueid
 
@@ -264,31 +265,37 @@ end
 --      true
 --      > a:has(0)
 --      false
-function Set:has (obj)    
+function Set:has (obj)
     if type(obj) == 'table' then
         -- To avoid problems with recursive data structures, which 
         -- may cause a cycle `Set.mt.__eq` -> `Set.mt.__le` -> 
         -- `Set.has` -> `Set.mt.__eq`, we need to check whether
         -- we have already seen `obj`.
         -- 
-        -- I am using `debug.getlocal` to implement dynamic scoping.
-        -- This ain't pretty, but since the cycle stretches over three
-        -- methods, some of which are metamethods, it would be hard to
-        -- pass an extra argument. And I doubt that adding a 'static'
-        -- variable to `has` would be safe in a threaded environment --
-        -- or much faster for that matter.
+        -- I am using `debug.getlocal` to implement dynamic scoping. This
+        -- isn't pretty, but since the cycle stretches over three methods,
+        -- some of which are metamethods, it would be hard to pass an extra
+        -- argument. And I doubt that adding a 'static' variable to `has`
+        -- would be safe in a threaded environment -- or much faster.
         local getlocal = getlocal
         -- The current function is level 1, one cycle has a length of 3, and
         -- we need to add 1 level each for `pcall` and the lambda; hence 6.
         local n = 6
         while true do
             -- `obj` is the second variable that has been defined.
-            local s, _, v = pcall(function () return getlocal(n, 2) end)
+            local s, k, v = pcall(function () return getlocal(n, 2) end)
             if not s then break end
-            if rawequal(obj, v) then return true end
+            -- We need to make sure that the function at `n` is `has`.
+            -- `getinfo` counts from 0, which is itself, and there is no
+            -- `pcall` or lambda to account for, ergo: `n - 2`.
+            if rawequal(obj, v) and k == 'obj' and
+               getinfo(n - 2, 'n').name == 'has'
+            then
+                return true
+            end
             -- The cycle has a length of three.
             n = n + 3
-        end        
+        end
         local ts = self._tab
         for i = 1, #ts do
             if ts[i] == obj then return true end
