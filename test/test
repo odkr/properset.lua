@@ -1355,6 +1355,15 @@ TestBootstrap = {}
         -- Let's test behaviour.
         lu.assertItemsEquals(a:totable(false), t)
         lu.assertEquals(#a, 100)
+        
+        -- Test whether higher rank sets work.
+        -- This is in response to a particular bug.
+        local a = 0
+        local b = Set{a}
+        local c = Set{b}
+        lu.assertTrue(c ~= emptyset)
+        lu.assertTrue(#c == 1)
+        lu.assertEquals(properset.rank(c), 2)
     end
 
     --- Tests call interface.
@@ -1590,11 +1599,10 @@ TestBootstrap = {}
 
 --- Tests of core machinery
 --
--- The following tests are of the core machinery, that is, either
--- behaviour that is useful for other tests (e.g., conversions),
--- or core parts that may not be relevant to users but are used
--- by other functions (`copy`, `Set.copy` and the `__pairs` and
--- `__ipairs` iterators).
+-- The following tests are of the core machinery, that is, either behaviour
+-- that is useful for other tests (e.g., conversions), or core parts that 
+-- may not be relevant to users but are used by other functions (`copy`, and
+-- the `__pairs` and `__ipairs` iterators).
 --
 -- @section machinery
 
@@ -1606,7 +1614,7 @@ TestBootstrap = {}
 TestCopy = {}
 
     --- Test copying non-sets.
-    function TestCopy.TestCopyNonSets()
+    function TestCopy.TestCopy()
         -- Test simple copies.
         for _, v in pairs(tables) do
             local t = properset.copy(v)
@@ -1645,34 +1653,13 @@ TestCopy = {}
         t.t = t
         local c = properset.copy(t)
         lu.assertItemsEquals(c, t)
-    end
 
-    --- Tests copying of sets.
-    function TestCopy.TestSetCopy()
-        -- Test if empty stays empty.
-        local c = emptyset:copy()
-        lu.assertEquals(c, emptyset)
-
-        -- Test simple copies.
-        for k, v in pairs(sets) do
-            local s = v:copy()
-            lu.assertItemsEquals(s, v)
-        end
-
-        -- Test a nested set.
-        local a = Set{1, Set{2}, Set{3}}
-        local c = a:copy()
-        lu.assertItemsEquals(a, c)
-    end
-
-    --- Tests copying of sets with regular copy function.
-    function TestCopy.TestCopySets()
         -- Test if empty stays empty.
         local c = properset.copy(emptyset)
         lu.assertEquals(c, emptyset)
 
         -- Test simple copies.
-        for _, v in pairs(sets) do
+        for k, v in pairs(sets) do
             local s = properset.copy(v)
             lu.assertItemsEquals(s, v)
         end
@@ -1680,7 +1667,7 @@ TestCopy = {}
         -- Test a nested set.
         local a = Set{1, Set{2}, Set{3}}
         local c = properset.copy(a)
-        lu.assertItemsEquals(c, a)
+        lu.assertItemsEquals(a, c)
     end
 
 
@@ -1735,7 +1722,7 @@ TestConversion = {}
         for i = 1, 991, 10 do
             local b = Set{i}
             for j = 1, 9 do
-                b = Set{j+i, b:copy()}
+                b = Set{j+i, properset.copy(b)}
             end
             a:add{b}
         end
@@ -2206,26 +2193,6 @@ function TestPower()
     lu.assertEquals(a:power(), b)
 end
 
-function TestRank()
-    local a = Set{Set{Set{}}}
-    lu.assertEquals(a:rank(), 3)
-end
-
-function TestRankN()
-    local a = Set{1, Set{2, Set{3, 4}, Set{5}}, Set{6}}
-    lu.assertEquals(a:of_rankn(0), Set{1})
-    lu.assertEquals(a:of_rankn(1), Set{Set{6}})
-    lu.assertEquals(a:of_rankn(2), Set{Set{2,
-        Set{3, 4}, Set{5}}})
-    lu.assertEquals(a:of_rankn(3), emptyset)
-    lu.assertEquals(a:of_rankn(0, properset.RECURSIVE), Set{1, 2, 3, 4, 5, 6})
-    lu.assertEquals(a:of_rankn(1, properset.RECURSIVE), Set{Set{3, 4},
-        Set{5}, Set{6}})
-    lu.assertEquals(a:of_rankn(2, properset.RECURSIVE), Set{Set{2,
-        Set{3, 4}, Set{5}}})
-    lu.assertEquals(a:of_rankn(3, properset.RECURSIVE), emptyset)
-end
-
 function TestLevelN()
     local a = Set{1, Set{2, Set{3, 4}, Set{5}}, Set{6}}
     lu.assertEquals(a:at_leveln(1), Set{1, Set{2, Set{3, 4},
@@ -2285,7 +2252,7 @@ function TestAssertSet()
     lu.assertTrue(pcall(function() return properset.assert_set(a) end))
 end
 
-function TestRankF()
+function TestRank ()
     local a = 0
     local b = Set{a}
     local c = Set{b}
