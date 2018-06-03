@@ -554,23 +554,6 @@ function Set:unpack ()
 end
 
 
---- Concatenates all members of the set to a string.
---
--- Keep in mind, sets may be multidimensional. Consider using `flatten`.
---
--- @tparam[opt=''] string sep A string to seperate members.
---
--- @treturn string The members of the set, seperated by `sep`.
---
--- @usage
---      > a = Set{1, 2, 3}
---      > a:concat(', ')
---      1, 2, 3
-function Set:concat (sep)
-    return table.concat(self:totable(), sep)
-end
-
-
 --- Returns the members of the set sorted.
 --
 -- Keep in mind, sets may be multidimensional. Consider using `flatten`.

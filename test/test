@@ -1753,29 +1753,6 @@ TestTable = {}
         end
     end
 
-    --- Test if concantenating works.
-    function TestTable.TestSetConcat()
-        -- Let's test with a single item.
-        -- Because sets can't guarantee order, that's the only
-        -- way to directly compare strings.
-        local t = table.concat({1})
-        local s = Set{1}:concat()
-        lu.assertEquals(s, t)
-
-        -- Test with a seperator.
-        local t = table.concat({1}, ', ')
-        local s = Set{1}:concat(', ')
-        lu.assertEquals(s, t)
-
-        -- Test for longer sets.
-        for k, v in pairs(sets) do
-            if k:sub(1, 3) == 'str' then
-                local tab = str_split(table.concat(tables[k]))
-                local set = str_split(v:concat())
-                lu.assertItemsEquals(set, tab)
-            end
-        end
-    end
 
     --- Test if sorting works.
     --
