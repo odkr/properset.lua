@@ -593,8 +593,6 @@ end
 
 --- The non-set members of the set and its descendants.
 --
--- @param s
---
 -- @treturn Set A set with all non-set members of the set and its descendants.
 --
 -- @usage
