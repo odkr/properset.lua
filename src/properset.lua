@@ -290,16 +290,12 @@ function Set:has (obj)
             -- `pcall` or lambda to account for, ergo: `n - 2`.
             if rawequal(obj, v) and k == 'obj' and
                getinfo(n - 2, 'n').name == 'has'
-            then
-                return true
-            end
+            then return true end
             -- The cycle has a length of three.
             n = n + 3
         end
         local ts = self._tab
-        for i = 1, #ts do
-            if ts[i] == obj then return true end
-        end
+        for i = 1, #ts do if ts[i] == obj then return true end end
         return false
     else
         return self._val.mem[obj] or false
