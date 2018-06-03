@@ -7,10 +7,9 @@ Allows to handles sets, including complex ones, -- properly.
 or other sets, provides functions for basic set arithmetics, sports a sane
 interface, and is well-documented.
 
-However, `properset` is **not** production-ready. The interface is in flux
-and some functions will overflow the stack when given cyclic tables, 
-including objects and sets, as input. (Tables that refer to themselves
-should be fine.)
+However, `properset` is **not** quite production-ready. The interface is in
+flux and `of_rankn` and `at_leveln` will overflow the stack when run cyclic
+sets.
 
 Also, the test suite isn't complete yet.
 
