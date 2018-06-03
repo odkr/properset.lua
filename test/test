@@ -271,7 +271,7 @@ TestBootstrap = {}
         local b = {}
         local a_mt = getmetatable(a)
         local b_mt = {}
-        for i = 0, #a_mt do b_mt[i] = a_mt[i] end
+        for k, v in pairs(a_mt) do b_mt[k] = v end
         b_mt.__index = a
         setmetatable(b, b_mt)
         lu.assertTrue(properset.is_set(b))
