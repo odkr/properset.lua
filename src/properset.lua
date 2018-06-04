@@ -35,11 +35,6 @@ local type = type
 local rawequal = rawequal
 local rawset = rawset
 
-local debug = debug
-local getinfo = debug.getinfo
-local getlocal = debug.getlocal
-local upvalueid = debug.upvalueid
-
 local math = math
 local huge = math.huge
 
