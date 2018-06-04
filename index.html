@@ -127,19 +127,15 @@
 	<td class="summary">The members of the set as a table.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:unpack">Set:unpack ()</a></td>
+	<td class="name" nowrap><a href="#Set:unpack">Set:unpack ([flags=0])</a></td>
 	<td class="summary">Unpacks the members of the set.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Set:concat">Set:concat ([sep=''])</a></td>
-	<td class="summary">Concatenates all members of the set to a string.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set:sorted">Set:sorted ([callable])</a></td>
 	<td class="summary">Returns the members of the set sorted.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:flatten">Set:flatten (s)</a></td>
+	<td class="name" nowrap><a href="#Set:flatten">Set:flatten ()</a></td>
 	<td class="summary">The non-set members of the set and its descendants.</td>
 	</tr>
 	<tr>
@@ -274,7 +270,7 @@
 
           <div class="section-description">
           Sets contain every item at most once.
- They can only be modified using <a href="index.html#ImmutableSet.add">add</a> and <a href="index.html#ImmutableSet.delete">delete</a>.
+ They can only be modified using <a href="index.html#Set:add">add</a> and <a href="index.html#ImmutableSet.delete">delete</a>.
  And set members are (mostly) immutable.</p>
 
 <p> You should <em>not</em> attempt to modify set members.
@@ -572,9 +568,9 @@ Set: <span class="number">0x7f8a555d4df0</span>
         </li>
         <li><span class="parameter">flags</span>
             <span class="types"><span class="type">number</span></span>
-         If equal to <a href="index.html#RECURSIVE">RECURSIVE</a>, and <code>rank(set)</code> is > 1,
-  then members of the set that are sets, members of those sets that are
-  sets, &hellip;, are converetd to tables, too.
+         If equal to <a href="index.html#RECURSIVE">RECURSIVE</a>, then members of the
+  set that are sets, members of those sets that are sets, &hellip;, are searched
+   for members of the given rank, too.
          (<em>default</em> 0)
         </li>
     </ul>
@@ -742,9 +738,9 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <ul>
         <li><span class="parameter">flags</span>
             <span class="types"><span class="type">number</span></span>
-         If equal to <a href="index.html#RECURSIVE">RECURSIVE</a>, and <code>rank(set)</code> is > 1,
-  then members of the set that are sets, members of those sets that are
-  sets, &hellip;, are converetd to tables, too.
+         If equal to <a href="index.html#RECURSIVE">RECURSIVE</a>, then members of the
+  set that are sets, members of those sets that are sets, &hellip;, are converetd
+  to tables, too.
          (<em>default</em> 0)
         </li>
     </ul>
@@ -769,12 +765,22 @@ Set: <span class="number">0x7f8a555d4df0</span>
 </dd>
     <dt>
     <a name = "Set:unpack"></a>
-    <strong>Set:unpack ()</strong>
+    <strong>Set:unpack ([flags=0])</strong>
     </dt>
     <dd>
     Unpacks the members of the set.
 
 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">flags</span>
+            <span class="types"><span class="type">number</span></span>
+         If equal to <a href="index.html#RECURSIVE">RECURSIVE</a>, then unpacks not
+  only this set, but all sets that are members of this set, members of those
+  sets, and so forth.
+         (<em>default</em> 0)
+        </li>
+    </ul>
 
     <h3>Returns:</h3>
     <ol>
@@ -789,42 +795,6 @@ Set: <span class="number">0x7f8a555d4df0</span>
         <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 &gt; a:unpack()
 <span class="number">1</span>       <span class="number">2</span>       <span class="number">3</span></pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "Set:concat"></a>
-    <strong>Set:concat ([sep=''])</strong>
-    </dt>
-    <dd>
-    Concatenates all members of the set to a string. </p>
-
-<p> Keep in mind, sets may be multidimensional. Consider using <a href="index.html#Set:flatten">flatten</a>.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">sep</span>
-            <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
-         A string to seperate members.
-         (<em>default</em> '')
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.4">string</a></span>
-        The members of the set, seperated by <code>sep</code>.
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; a:concat(<span class="string">', '</span>)
-<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span></pre>
     </ul>
 
 </dd>
@@ -867,19 +837,12 @@ Set: <span class="number">0x7f8a555d4df0</span>
 </dd>
     <dt>
     <a name = "Set:flatten"></a>
-    <strong>Set:flatten (s)</strong>
+    <strong>Set:flatten ()</strong>
     </dt>
     <dd>
     The non-set members of the set and its descendants.
 
 
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">s</span>
-
-
-        </li>
-    </ul>
 
     <h3>Returns:</h3>
     <ol>
@@ -1295,7 +1258,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <h2 class="section-header has-description"><a name="Class_ImmutableSet"></a>Class ImmutableSet </h2>
 
           <div class="section-description">
-          Immutable Sets are just sets without an <a href="index.html#ImmutableSet.add">add</a> and a <a href="index.html#ImmutableSet.delete">delete</a> method.
+          Immutable Sets are just sets without an <a href="index.html#Set:add">add</a> and a <a href="index.html#ImmutableSet.delete">delete</a> method.
  (Strictly speaking, they have those methods, but calling them
  results in a runtime error.) They can be populated when they are
  created but cannot be changed afterwards (through their interface
@@ -1788,7 +1751,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-06-03 17:15:25 </i>
+<i style="float:right;">Last updated 2018-06-04 10:34:46 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
