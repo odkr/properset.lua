@@ -280,7 +280,6 @@ function Set:has (obj, s)
     else
         return self._val.mem[obj] or false
     end
-
 end
 
 
@@ -525,7 +524,7 @@ end
 --- Unpacks the members of the set.
 --
 -- @tparam[opt=0] number flags If equal to `RECURSIVE`, then unpacks not
---  only this set, but all sets that members of this set, members of those
+--  only this set, but all sets that are members of this set, members of those
 --  sets, and so forth.
 --
 -- @return The members of the given set unpacked.
