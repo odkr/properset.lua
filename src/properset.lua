@@ -265,41 +265,22 @@ end
 --      true
 --      > a:has(0)
 --      false
-function Set:has (obj)
+function Set:has (obj, s)
     if type(obj) == 'table' then
-        -- To avoid problems with recursive data structures, which 
-        -- may cause a cycle `Set.mt.__eq` -> `Set.mt.__le` -> 
-        -- `Set.has` -> `Set.mt.__eq`, we need to check whether
-        -- we have already seen `obj`.
-        -- 
-        -- I am using `debug.getlocal` to implement dynamic scoping. This
-        -- isn't pretty, but since the cycle stretches over three methods,
-        -- some of which are metamethods, it would be hard to pass an extra
-        -- argument. And I doubt that adding a 'static' variable to `has`
-        -- would be safe in a threaded environment -- or much faster.
-        local getlocal = getlocal
-        -- The current function is level 1, one cycle has a length of 3, and
-        -- we need to add 1 level each for `pcall` and the lambda; hence 6.
-        local n = 6
-        while true do
-            -- `obj` is the second variable that has been defined.
-            local s, k, v = pcall(function () return getlocal(n, 2) end)
-            if not s then break end
-            -- We need to make sure that the function at `n` is `has`.
-            -- `getinfo` counts from 0, which is itself, and there is no
-            -- `pcall` or lambda to account for, ergo: `n - 2`.
-            if rawequal(obj, v) and k == 'obj' and
-               getinfo(n - 2, 'n').name == 'has'
-            then return true end
-            -- The cycle has a length of three.
-            n = n + 3
-        end
+        if s and s[obj] then return true end
         local ts = self._tab
-        for i = 1, #ts do if ts[i] == obj then return true end end
+        if is_set(obj) then
+            if s then s[obj] = true else s = {[obj] = true} end
+            local eq = getmetatable(obj).__eq
+            for i = 1, #ts do if eq(obj, ts[i], s) then return true end end
+        else
+            for i = 1, #ts do if ts[i] == obj then return true end end
+        end
         return false
     else
         return self._val.mem[obj] or false
     end
+
 end
 
 
@@ -375,9 +356,9 @@ end
 -- `a:flatten()` and `a:of_rankn(0, propertyset.RECURSIVE)` are equivalent.
 --
 -- @tparam number n The rank.
--- @tparam[opt=0] number flags If equal to `RECURSIVE`, and `rank(set)` is > 1, 
---  then members of the set that are sets, members of those sets that are 
---  sets, ..., are converetd to tables, too.
+-- @tparam[opt=0] number flags If equal to `RECURSIVE`, then members of the
+--  set that are sets, members of those sets that are sets, ..., are searched
+--   for members of the given rank, too.
 --
 -- @treturn Set The members of rank *n*.
 --
@@ -509,9 +490,9 @@ end
 
 --- The members of the set as a table.
 --
--- @tparam[opt=0] number flags If equal to `RECURSIVE`, and `rank(set)` is > 1, 
---  then members of the set that are sets, members of those sets that are 
---  sets, ..., are converetd to tables, too.
+-- @tparam[opt=0] number flags If equal to `RECURSIVE`, then members of the
+--  set that are sets, members of those sets that are sets, ..., are converetd
+--  to tables, too.
 --
 -- @treturn table All members of the set.
 --
@@ -543,14 +524,18 @@ end
 
 --- Unpacks the members of the set.
 --
+-- @tparam[opt=0] number flags If equal to `RECURSIVE`, then unpacks not
+--  only this set, but all sets that members of this set, members of those
+--  sets, and so forth.
+--
 -- @return The members of the given set unpacked.
 --
 -- @usage
 --      > a = Set{1, 2, 3}
 --      > a:unpack()
 --      1       2       3
-function Set:unpack ()
-    return table.unpack(self:totable())
+function Set:unpack (flags)
+    return table.unpack(self:totable(flags))
 end
 
 
@@ -700,11 +685,12 @@ Set.mt.__pairs = Set.mt.__ipairs
 --      true
 --      > c <= a
 --      false
-function Set.mt:__le (other)
+function Set.mt:__le (other, s)
     assert_set(other, 'other')
+    s = s or {}
     local has = other.has
     for i in self:mems() do
-        if not has(other, i) then return false end
+        if not has(other, i, s) then return false end
     end
     return true
 end
@@ -759,10 +745,11 @@ end
 --      false
 --      > a ~= c
 --      true
-function Set.mt:__eq (other)
+function Set.mt:__eq (other, s)
     if not is_set(other) or not is_set(self) then return false end
     if #self ~= #other then return false end 
-    return self <= other
+    s = s or {}
+    return getmetatable(self).__le(self, other, s)
 end
 
 
