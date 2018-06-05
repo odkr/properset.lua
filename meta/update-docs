@@ -8,4 +8,5 @@ cd -P "$REPO" || exit
 ldoc . 
 git add doc
 git commit -m 'Updated docs.'
+git push
 git subtree push --prefix doc origin gh-pages
