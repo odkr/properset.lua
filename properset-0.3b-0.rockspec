@@ -1,8 +1,8 @@
 package = "properset"
-version = "0.2-0"
+version = '0.3b-0'
 source = {
    url = "git://github.com/odkr/properset.lua",
-   tag = "v0.2-0"
+   tag = 'v0.3b-0'
 }
 description = {
    summary = [[Allows to properly handle sets that contain
