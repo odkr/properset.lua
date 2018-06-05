@@ -30,7 +30,7 @@
 <h2>Contents</h2>
 <ul>
 <li><a href="#Class_Set">Class Set </a></li>
-<li><a href="#Class_ImmutableSet">Class ImmutableSet </a></li>
+<li><a href="#Class_FrozenSet">Class FrozenSet </a></li>
 <li><a href="#Set_arithmetics">Set arithmetics </a></li>
 <li><a href="#Utility_functions">Utility functions </a></li>
 <li><a href="#Constants">Constants </a></li>
@@ -87,11 +87,11 @@
 	<td class="summary">Adds elements to a set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:delete">Set:delete (mems)</a></td>
+	<td class="name" nowrap><a href="#Set:remove">Set:remove (mems)</a></td>
 	<td class="summary">Deletes members from a set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:is_empty">Set:is_empty ()</a></td>
+	<td class="name" nowrap><a href="#Set:isempty">Set:isempty ()</a></td>
 	<td class="summary">Tests whether the set is empty.</td>
 	</tr>
 	<tr>
@@ -107,11 +107,11 @@
 	<td class="summary">The set&rsquo;s power set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:of_rankn">Set:of_rankn (n[, flags=0])</a></td>
+	<td class="name" nowrap><a href="#Set:ofrank">Set:ofrank (n[, flags=0])</a></td>
 	<td class="summary">All members of rank <em>n</em>.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:at_leveln">Set:at_leveln (n)</a></td>
+	<td class="name" nowrap><a href="#Set:atlevel">Set:atlevel (n)</a></td>
 	<td class="summary">All members at level <em>n</em>.</td>
 	</tr>
 	<tr>
@@ -135,8 +135,16 @@
 	<td class="summary">Returns the members of the set sorted.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:flatten">Set:flatten ()</a></td>
+	<td class="name" nowrap><a href="#Set:flattened">Set:flattened ()</a></td>
 	<td class="summary">The non-set members of the set and its descendants.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set:freeze">Set:freeze ()</a></td>
+	<td class="summary">Makes a set immutable.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set:unfreeze">Set:unfreeze ()</a></td>
+	<td class="summary">Does nothing.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set.mt:__newindex">Set.mt:__newindex ()</a></td>
@@ -187,25 +195,33 @@
 	<td class="summary">A string representation of the set.</td>
 	</tr>
 </table>
-<h2><a href="#Class_ImmutableSet">Class ImmutableSet </a></h2>
+<h2><a href="#Class_FrozenSet">Class FrozenSet </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#ImmutableSet:new">ImmutableSet:new ([elems])</a></td>
-	<td class="summary">Creates a new instance of a set prototype, typically <a href="index.html#ImmutableSet">ImmutableSet</a>.</td>
+	<td class="name" nowrap><a href="#FrozenSet:new">FrozenSet:new ([elems])</a></td>
+	<td class="summary">Creates a new instance of a set prototype, typically <a href="index.html#FrozenSet">FrozenSet</a>.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#ImmutableSet.add">ImmutableSet.add ()</a></td>
+	<td class="name" nowrap><a href="#FrozenSet.add">FrozenSet.add ()</a></td>
 	<td class="summary">Blocks accidential modifications of a set or its members.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#ImmutableSet.delete">ImmutableSet.delete ()</a></td>
+	<td class="name" nowrap><a href="#FrozenSet.remove">FrozenSet.remove ()</a></td>
 	<td class="summary">Blocks accidential modifications of a set or its members.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#FrozenSet:freeze">FrozenSet:freeze ()</a></td>
+	<td class="summary">Does nothing.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#FrozenSet:unfreeze">FrozenSet:unfreeze ()</a></td>
+	<td class="summary">Make the set mutable.</td>
 	</tr>
 </table>
 <h2><a href="#Set_arithmetics">Set arithmetics </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#are_disjoint">are_disjoint (sets)</a></td>
+	<td class="name" nowrap><a href="#aredisjoint">aredisjoint (sets)</a></td>
 	<td class="summary">Tests whether two or more sets are disjoint.</td>
 	</tr>
 	<tr>
@@ -228,12 +244,8 @@
 <h2><a href="#Utility_functions">Utility functions </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#is_set">is_set (obj)</a></td>
+	<td class="name" nowrap><a href="#isset">isset (obj)</a></td>
 	<td class="summary">Tests whether an object behaves Set-ish.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#assert_set">assert_set (obj[, var])</a></td>
-	<td class="summary">Asserts that an object is a set.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#rank">rank (obj)</a></td>
@@ -270,7 +282,7 @@
 
           <div class="section-description">
           Sets contain every item at most once.
- They can only be modified using <a href="index.html#Set:add">add</a> and <a href="index.html#ImmutableSet.delete">delete</a>.
+ They can only be modified using <a href="index.html#FrozenSet.add">add</a> and <a href="index.html#FrozenSet.remove">remove</a>.
  And set members are (mostly) immutable.</p>
 
 <p> You should <em>not</em> attempt to modify set members.
@@ -325,8 +337,7 @@
     <ul>
         <li><span class="parameter">flags</span>
             <span class="types"><span class="type">number</span></span>
-         If flags is equal to <a href="index.html#ASNUM">ASNUM</a>,
-  then the ID is returned as a number.
+         If <a href="index.html#ASNUM">ASNUM</a> is set, returns the ID as a number.
          (<em>default</em> 0)
         </li>
     </ul>
@@ -386,20 +397,20 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
 </dd>
     <dt>
-    <a name = "Set:delete"></a>
-    <strong>Set:delete (mems)</strong>
+    <a name = "Set:remove"></a>
+    <strong>Set:remove (mems)</strong>
     </dt>
     <dd>
     Deletes members from a set. </p>
 
-<p> Don&rsquo;t delete members of a set while you're iterating over it.
+<p> Don&rsquo;t remove members of a set while you're iterating over it.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">mems</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.6">table</a></span>
-         A list of members to be deleted.
+         A list of members to be removed.
         </li>
     </ul>
 
@@ -409,15 +420,15 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <h3>Usage:</h3>
     <ul>
         <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; a:delete{<span class="number">2</span>, <span class="number">3</span>}
+&gt; a:remove{<span class="number">2</span>, <span class="number">3</span>}
 &gt; a
 {<span class="number">1</span>}</pre>
     </ul>
 
 </dd>
     <dt>
-    <a name = "Set:is_empty"></a>
-    <strong>Set:is_empty ()</strong>
+    <a name = "Set:isempty"></a>
+    <strong>Set:isempty ()</strong>
     </dt>
     <dd>
     Tests whether the set is empty.
@@ -436,10 +447,10 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <h3>Usage:</h3>
     <ul>
         <pre class="example">&gt; a = Set()
-&gt; a:is_empty()
+&gt; a:isempty()
 <span class="keyword">true</span>
 &gt; b = Set{<span class="number">1</span>}
-&gt; b:is_empty()
+&gt; b:isempty()
 <span class="keyword">false</span></pre>
     </ul>
 
@@ -551,13 +562,13 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
 </dd>
     <dt>
-    <a name = "Set:of_rankn"></a>
-    <strong>Set:of_rankn (n[, flags=0])</strong>
+    <a name = "Set:ofrank"></a>
+    <strong>Set:ofrank (n[, flags=0])</strong>
     </dt>
     <dd>
     All members of rank <em>n</em>. </p>
 
-<p> <code>a:flatten()</code> and <code>a:of_rankn(0, propertyset.RECURSIVE)</code> are equivalent.
+<p> <code>a:flattened()</code> and <code>a:ofrank(0, propertyset.RECURSIVE)</code> are equivalent.
 
 
     <h3>Parameters:</h3>
@@ -568,9 +579,8 @@ Set: <span class="number">0x7f8a555d4df0</span>
         </li>
         <li><span class="parameter">flags</span>
             <span class="types"><span class="type">number</span></span>
-         If equal to <a href="index.html#RECURSIVE">RECURSIVE</a>, then members of the
-  set that are sets, members of those sets that are sets, &hellip;, are searched
-   for members of the given rank, too.
+         If <a href="index.html#RECURSIVE">RECURSIVE</a> is set, then searches members
+   of the set that are sets, members of those sets that are sets, &hellip;, too.
          (<em>default</em> 0)
         </li>
     </ul>
@@ -593,28 +603,28 @@ Set: <span class="number">0x7f8a555d4df0</span>
         <pre class="example">&gt; a = Set{<span class="number">1</span>, Set{<span class="number">2</span>, Set{<span class="number">3</span>, <span class="number">4</span>}, Set{<span class="number">5</span>}}, Set{<span class="number">6</span>}}
 &gt; a
 {<span class="number">1</span>, {<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}, {<span class="number">6</span>}}
-&gt; a:of_rankn(<span class="number">0</span>)
+&gt; a:ofrank(<span class="number">0</span>)
 {<span class="number">1</span>}
-&gt; a:of_rankn(<span class="number">1</span>)
+&gt; a:ofrank(<span class="number">1</span>)
 {{<span class="number">6</span>}}
-&gt; a:of_rankn(<span class="number">2</span>)
+&gt; a:ofrank(<span class="number">2</span>)
 {{<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}}
-&gt; a:of_rankn(<span class="number">3</span>)
+&gt; a:ofrank(<span class="number">3</span>)
 {}
-&gt; a:of_rankn(<span class="number">0</span>, <span class="keyword">true</span>)
+&gt; a:ofrank(<span class="number">0</span>, <span class="keyword">true</span>)
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>}
-&gt; a:of_rankn(<span class="number">1</span>, <span class="keyword">true</span>)
+&gt; a:ofrank(<span class="number">1</span>, <span class="keyword">true</span>)
 {{<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}, {<span class="number">6</span>}}
-&gt; a:of_rankn(<span class="number">2</span>, <span class="keyword">true</span>)
+&gt; a:ofrank(<span class="number">2</span>, <span class="keyword">true</span>)
 {{<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}}
-&gt; a:of_rankn(<span class="number">3</span>, <span class="keyword">true</span>)
+&gt; a:ofrank(<span class="number">3</span>, <span class="keyword">true</span>)
 {}</pre>
     </ul>
 
 </dd>
     <dt>
-    <a name = "Set:at_leveln"></a>
-    <strong>Set:at_leveln (n)</strong>
+    <a name = "Set:atlevel"></a>
+    <strong>Set:atlevel (n)</strong>
     </dt>
     <dd>
     All members at level <em>n</em>. </p>
@@ -649,13 +659,13 @@ Set: <span class="number">0x7f8a555d4df0</span>
         <pre class="example">&gt; a = Set{<span class="number">1</span>, Set{<span class="number">2</span>, Set{<span class="number">3</span>, <span class="number">4</span>}, Set{<span class="number">5</span>}}, Set{<span class="number">6</span>}}
 &gt; a
 {<span class="number">1</span>, {<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}, {<span class="number">6</span>}}
-&gt; a:at_leveln(<span class="number">1</span>)
+&gt; a:atlevel(<span class="number">1</span>)
 {<span class="number">1</span>, {<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}}, {<span class="number">6</span>}}
-&gt; a:at_leveln(<span class="number">2</span>)
+&gt; a:atlevel(<span class="number">2</span>)
 {<span class="number">2</span>, {<span class="number">3</span>, <span class="number">4</span>}, {<span class="number">5</span>}, <span class="number">6</span>}
-&gt; a:at_leveln(<span class="number">3</span>)
+&gt; a:atlevel(<span class="number">3</span>)
 {<span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>}
-&gt; a:at_leveln(<span class="number">4</span>)
+&gt; a:atlevel(<span class="number">4</span>)
 {}</pre>
     </ul>
 
@@ -738,9 +748,8 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <ul>
         <li><span class="parameter">flags</span>
             <span class="types"><span class="type">number</span></span>
-         If equal to <a href="index.html#RECURSIVE">RECURSIVE</a>, then members of the
-  set that are sets, members of those sets that are sets, &hellip;, are converetd
-  to tables, too.
+         If <a href="index.html#RECURSIVE">RECURSIVE</a> is set, then converts members of
+   the set that are sets, members of those sets that are sets, &hellip;, too.
          (<em>default</em> 0)
         </li>
     </ul>
@@ -775,9 +784,9 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <ul>
         <li><span class="parameter">flags</span>
             <span class="types"><span class="type">number</span></span>
-         If equal to <a href="index.html#RECURSIVE">RECURSIVE</a>, then unpacks not
-  only this set, but all sets that are members of this set, members of those
-  sets, and so forth.
+         If <a href="index.html#RECURSIVE">RECURSIVE</a> is set, then unpacks not
+  only this set, but all sets that are members of this set, members of
+  those sets, and so forth.
          (<em>default</em> 0)
         </li>
     </ul>
@@ -805,7 +814,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <dd>
     Returns the members of the set sorted. </p>
 
-<p> Keep in mind, sets may be multidimensional. Consider using <a href="index.html#Set:flatten">flatten</a>.
+<p> Keep in mind, sets may be multidimensional.
 
 
     <h3>Parameters:</h3>
@@ -836,8 +845,8 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
 </dd>
     <dt>
-    <a name = "Set:flatten"></a>
-    <strong>Set:flatten ()</strong>
+    <a name = "Set:flattened"></a>
+    <strong>Set:flattened ()</strong>
     </dt>
     <dd>
     The non-set members of the set and its descendants.
@@ -857,8 +866,65 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <ul>
         <pre class="example">&gt; a = Set{<span class="number">1</span>, Set{<span class="number">2</span>, <span class="number">3</span>}, <span class="number">4</span>}
 &gt; b = a:power()
-&gt; b:flatten()
+&gt; b:flattened()
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set:freeze"></a>
+    <strong>Set:freeze ()</strong>
+    </dt>
+    <dd>
+    Makes a set immutable.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#FrozenSet">FrozenSet</a></span>
+        The frozen set.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set()
+&gt; a:add{<span class="number">0</span>}
+&gt; a
+{<span class="number">0</span>}
+&gt; a:freeze()
+{<span class="number">0</span>}
+&gt; a:add{<span class="number">1</span>}
+set is immutable.</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set:unfreeze"></a>
+    <strong>Set:unfreeze ()</strong>
+    </dt>
+    <dd>
+    Does nothing.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        The set.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set()
+&gt; a:unfreeze()
+{}</pre>
     </ul>
 
 </dd>
@@ -1255,10 +1321,10 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
 </dd>
 </dl>
-    <h2 class="section-header has-description"><a name="Class_ImmutableSet"></a>Class ImmutableSet </h2>
+    <h2 class="section-header has-description"><a name="Class_FrozenSet"></a>Class FrozenSet </h2>
 
           <div class="section-description">
-          Immutable Sets are just sets without an <a href="index.html#Set:add">add</a> and a <a href="index.html#ImmutableSet.delete">delete</a> method.
+          Immutable Sets are just sets without an <a href="index.html#FrozenSet.add">add</a> and a <a href="index.html#FrozenSet.remove">remove</a> method.
  (Strictly speaking, they have those methods, but calling them
  results in a runtime error.) They can be populated when they are
  created but cannot be changed afterwards (through their interface
@@ -1266,13 +1332,13 @@ Set: <span class="number">0x7f8a555d4df0</span>
           </div>
     <dl class="function">
     <dt>
-    <a name = "ImmutableSet:new"></a>
-    <strong>ImmutableSet:new ([elems])</strong>
+    <a name = "FrozenSet:new"></a>
+    <strong>FrozenSet:new ([elems])</strong>
     </dt>
     <dd>
-    Creates a new instance of a set prototype, typically <a href="index.html#ImmutableSet">ImmutableSet</a>. </p>
+    Creates a new instance of a set prototype, typically <a href="index.html#FrozenSet">FrozenSet</a>. </p>
 
-<p> Note: You cannot create instances of <a href="index.html#ImmutableSet">ImmutableSet</a> using <code>Set.new</code>.
+<p> Note: You cannot create instances of <a href="index.html#FrozenSet">FrozenSet</a> using <code>Set.new</code>.
 
 
     <h3>Parameters:</h3>
@@ -1295,16 +1361,16 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">&gt; ImmutableSet:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+        <pre class="example">&gt; FrozenSet:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; ImmutableSet{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
+&gt; FrozenSet{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}</pre>
     </ul>
 
 </dd>
     <dt>
-    <a name = "ImmutableSet.add"></a>
-    <strong>ImmutableSet.add ()</strong>
+    <a name = "FrozenSet.add"></a>
+    <strong>FrozenSet.add ()</strong>
     </dt>
     <dd>
     Blocks accidential modifications of a set or its members.
@@ -1319,8 +1385,8 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
 </dd>
     <dt>
-    <a name = "ImmutableSet.delete"></a>
-    <strong>ImmutableSet.delete ()</strong>
+    <a name = "FrozenSet.remove"></a>
+    <strong>FrozenSet.remove ()</strong>
     </dt>
     <dd>
     Blocks accidential modifications of a set or its members.
@@ -1332,6 +1398,63 @@ Set: <span class="number">0x7f8a555d4df0</span>
     An error whenever it&rsquo;s invoked.
 
 
+
+</dd>
+    <dt>
+    <a name = "FrozenSet:freeze"></a>
+    <strong>FrozenSet:freeze ()</strong>
+    </dt>
+    <dd>
+    Does nothing.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#FrozenSet">FrozenSet</a></span>
+        The frozen set.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = FrozenSet()
+&gt; a:freeze()
+{}</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "FrozenSet:unfreeze"></a>
+    <strong>FrozenSet:unfreeze ()</strong>
+    </dt>
+    <dd>
+    Make the set mutable.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="index.html#Set">Set</a></span>
+        The unfrozen set.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = FrozenSet()
+&gt; a:add{<span class="number">0</span>}
+set is immutable.
+&gt; a:unfreeze()
+{}
+&gt; a:add{<span class="number">0</span>}
+&gt; a
+{<span class="number">0</span>}</pre>
+    </ul>
 
 </dd>
 </dl>
@@ -1339,8 +1462,8 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
     <dl class="function">
     <dt>
-    <a name = "are_disjoint"></a>
-    <strong>are_disjoint (sets)</strong>
+    <a name = "aredisjoint"></a>
+    <strong>aredisjoint (sets)</strong>
     </dt>
     <dd>
     Tests whether two or more sets are disjoint.
@@ -1369,9 +1492,9 @@ Set: <span class="number">0x7f8a555d4df0</span>
 &gt; b = Set{<span class="number">1</span>, <span class="number">2</span>}
 &gt; c = Set{<span class="number">2</span>}
 &gt; d = Set{<span class="number">3</span>}
-&gt; properset.are_disjoint{a, b, c}
+&gt; properset.aredisjoint{a, b, c}
 <span class="keyword">false</span>
-&gt; properset.are_disjoint{a, c, d}
+&gt; properset.aredisjoint{a, c, d}
 <span class="keyword">true</span></pre>
     </ul>
 
@@ -1538,8 +1661,8 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
     <dl class="function">
     <dt>
-    <a name = "is_set"></a>
-    <strong>is_set (obj)</strong>
+    <a name = "isset"></a>
+    <strong>isset (obj)</strong>
     </dt>
     <dd>
     Tests whether an object behaves Set-ish.
@@ -1564,38 +1687,12 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <h3>Usage:</h3>
     <ul>
         <pre class="example">&gt; a = Set()
-&gt; properset.is_set(a)
+&gt; properset.isset(a)
 <span class="keyword">true</span>
 &gt; b = <span class="string">"I may be many things, but a Set I'm not."</span>
-&gt; properset.is_set(b)
+&gt; properset.isset(b)
 <span class="keyword">false</span></pre>
     </ul>
-
-</dd>
-    <dt>
-    <a name = "assert_set"></a>
-    <strong>assert_set (obj[, var])</strong>
-    </dt>
-    <dd>
-    Asserts that an object is a set.
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">obj</span>
-         An object.
-        </li>
-        <li><span class="parameter">var</span>
-         The name of the variable.
-         (<em>optional</em>)
-        </li>
-    </ul>
-
-
-    <h3>Raises:</h3>
-    An error if <code>obj</code> isn&rsquo;t a <a href="index.html#Set">Set</a> (or implements the Set protocol).
-
-
 
 </dd>
     <dt>
@@ -1694,7 +1791,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
     <ul>
         <li><span class="parameter">emptyset</span>
-         The empty set (<code>ImmutableSet:new()</code>).
+         The empty set (<code>FrozenSet:new()</code>).
         </li>
     </ul>
 
@@ -1714,8 +1811,9 @@ Set: <span class="number">0x7f8a555d4df0</span>
 <p> Currently used by:</p>
 
 <ul>
+<li><a href="index.html#Set:ofrank">Set:ofrank</a></li>
 <li><a href="index.html#Set:totable">Set:totable</a></li>
-<li><a href="index.html#Set:of_rankn">Set:of_rankn</a></li>
+<li><a href="index.html#Set:unpack">Set:unpack</a></li>
 </ul>
 
 
@@ -1751,7 +1849,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-06-04 10:34:46 </i>
+<i style="float:right;">Last updated 2018-06-05 11:03:50 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
