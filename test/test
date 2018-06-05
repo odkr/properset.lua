@@ -1966,20 +1966,16 @@ TestBooleans = {}
 -- 
 -- These are:
 -- 
--- * Set.new should error if a set contains itself.
 -- * Any attempt to access set members should error.
---
--- @table TestCoreErrors Tests if all that should bark barks.
-TestCoreErrors = {}
     
-    --- Tests whether modifications of the set are blocked.
-    function TestCoreErrors.TestSetNewIndex ()
-        local err = ".*sets can only be modified using 'add' and 'remove'%."
-        local a = Set()
-        lu.assertErrorMsgMatches(err, function() a[1] = 1 end)
-        lu.assertErrorMsgMatches(err, function() a.b = 1 end)
-        lu.assertErrorMsgMatches(err, function() a['a b'] = 1 end)
-    end
+--- Tests whether modifications of the set are blocked.
+function TestCoreErrors ()
+    local err = ".*sets can only be modified by 'add', 'remove' and 'clear'%."
+    local a = Set()
+    lu.assertErrorMsgMatches(err, function() a[1] = 1 end)
+    lu.assertErrorMsgMatches(err, function() a.b = 1 end)
+    lu.assertErrorMsgMatches(err, function() a['a b'] = 1 end)
+end
 
 
 ---
