@@ -53,7 +53,7 @@ local _ENV = properset
 local SETMODERR = "sets can only be modified using 'add' and 'remove'."
 
 -- Format for error shown if a value isn't a set.
-local NOTASETERR = 'expected Set, got a %s.'
+local NOTASETERR = 'expected a Set, got a %s.'
 
 -- Format for error shown if `add` or `remove` are invoked for `FrozenSet`.
 local MODFROZENERR = 'set is immutable.'
@@ -1124,11 +1124,23 @@ end
 --- Utility functions
 -- @section function
 
---- Tests whether an object behaves Set-ish.
+--- Tests whether an object behaves like a Set.
+--
+-- That is, tests:
+--
+-- 1. whether an object's metatable has all fields defined in `Set.mt`;
+-- 2. whether an object has all fields defined in `Set`.
+--
+-- Note: Does *not* test whether those fields refer to functions.
+--
+-- An object whose metatable provides all methods defined in `Set.mt`
+-- and that itself provides all methods defined in `Set` is said to
+-- implement the "Set protocol".
 --
 -- @param obj An object.
 --
--- @treturn boolean Whether `obj` implements the `Set` protocol.
+-- @treturn boolean Whether `obj` implements the Set protocol.
+-- @treturn string If it doesn't implement the Set protocol, an error message.
 --
 -- @usage
 --      > a = Set()
@@ -1136,19 +1148,16 @@ end
 --      true
 --      > b = "I may be many things, but a Set I'm not."
 --      > properset.isset(b)
---      false
+--      false     expected a Set, got a string.
 function isset (obj)
     local rawequal = rawequal
     local t = type(obj)
     if t == 'table' then
-        local meta = getmetatable(obj)
-        if meta == nil then return false end
-        for k in pairs(Set.mt) do 
-            if meta[k] == nil then return false end
-        end
-        for k in pairs(Set) do
-            if rawequal(obj[k], nil) then return false end
-        end
+        local mt = getmetatable(obj)
+        if mt == nil then return false end
+        for k in pairs(Set.mt) do if mt[k] == nil then return false end end
+        local req = rawequal
+        for k in pairs(Set) do if req(obj[k], nil) then return false end end
         return true
     end
     return false, string.format(NOTASETERR, t)
