@@ -1255,8 +1255,7 @@ emptyset = FrozenSet:new()
 --  * `Set:unpack`
 RECURSIVE = 1
 
---- If this flag is passed to `Set.id`,
--- the set's ID is returned as a number.
+--- If this flag is passed to `Set:id`, the set's ID is returned as a number.
 --
 -- Only used by `Set:id`.
 ASNUM = 1
