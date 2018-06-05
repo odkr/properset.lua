@@ -1971,13 +1971,6 @@ TestBooleans = {}
 --
 -- @table TestCoreErrors Tests if all that should bark barks.
 TestCoreErrors = {}
-
-    --- Tests whether set barks at adding a set to itself.
-    function TestCoreErrors.TestSetAddToItself ()
-        local a = Set()
-        lu.assertErrorMsgMatches('.*sets cannot be members of themselves%.',
-            function() a:add{a} end)
-    end
     
     --- Tests whether modifications of the set are blocked.
     function TestCoreErrors.TestSetNewIndex ()
@@ -1995,7 +1988,7 @@ TestCoreErrors = {}
 TestManipulation = {}
 
     --- Tests whether deletion works.
-    function TestManipulation.TestSetDelete ()
+    function TestManipulation.TestSetRemove ()
         local t = {1, 2}
         local a = Set({1, 2, 3})
         a:remove{3}
@@ -2172,11 +2165,11 @@ end
 
 function TestLevelN()
     local a = Set{1, Set{2, Set{3, 4}, Set{5}}, Set{6}}
-    lu.assertEquals(a:at_leveln(1), Set{1, Set{2, Set{3, 4},
+    lu.assertEquals(a:atlevel(1), Set{1, Set{2, Set{3, 4},
         Set{5}}, Set{6}})
-    lu.assertEquals(a:at_leveln(2), Set{2, Set{3, 4}, Set{5}, 6})
-    lu.assertEquals(a:at_leveln(3), Set{3, 4, 5})
-    lu.assertEquals(a:at_leveln(4), emptyset)
+    lu.assertEquals(a:atlevel(2), Set{2, Set{3, 4}, Set{5}, 6})
+    lu.assertEquals(a:atlevel(3), Set{3, 4, 5})
+    lu.assertEquals(a:atlevel(4), emptyset)
 end
 
 function TestFlatten()
@@ -2222,12 +2215,6 @@ function TestNDifference()
     lu.assertEquals(properset.difference{a, b, c}, Set{1, 4})
 end
 
-
-function TestAssertSet()
-    local a = Set{1}
-    lu.assertError(function() return properset.assert_set(0) end)
-    lu.assertTrue(pcall(function() return properset.assert_set(a) end))
-end
 
 function TestRank ()
     local a = 0
