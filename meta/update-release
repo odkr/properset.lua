@@ -1,0 +1,106 @@
+#!/bin/sh
+
+VERS_REGEX='^[[:digit:]]+\.[[:alnum:]]+\-[[:digit:]]+$' 
+readonly VERS_REGEX
+
+BACKUP_SUFFIX='.backup'
+readonly BACKUP_SUFFIX
+
+set -Cefu
+
+panic() {
+    (
+        status="${1:?'panic: missing STATUS.'}"
+        format="${2:?'panic: missing ERROR.'}"
+        shift 2
+        printf -- "update-release: $format\n" "$@"
+        exit "$status"
+    ) || exit
+    exit
+}
+
+getvalue() (
+    file="${1:?'setvalue: missing FILE.'}"
+    key="${2:?'getvalue: missing KEY.'}"
+    sed -n "/^[[:space:]]*$key[[:space:]]*=/ {s/.*=[[:space:]]*[\"']//; s/[\"']$//; p;}" "$file"
+)
+
+setvalue() (
+    file="${1:?'setvalue: missing FILE.'}"
+    key="${2:?'setvalue: missing KEY.'}"
+    val="${3:?'setvalue: missing VALUE.'}"
+    sed -i "$BACKUP_SUFFIX" "s/^\\([[:space:]]*$key[[:space:]]*=[[:space:]]*\\).*/\\1'$val'/" "$file"
+)
+
+
+NEW="${1:?'missing VERSION.'}"
+[ "$(echo "$NEW" | grep -cE "$VERS_REGEX")" -eq 1 ] || \
+    panic 64 '%s: not a version number.' "$NEW"
+
+for TAG in $(git tag | sed -n 's/^v//p'); do
+     [ "$NEW" = "$TAG" ] && panic 64 '%s: already in use.' "$NEW"
+     OLD="$TAG"
+done
+
+REPO=$(git worktree list | head -n 1 | cut -f1 -d ' ')
+cd -P "$REPO" || exit
+
+RSPECS=$(set +f; ls *-"$OLD".rockspec)
+for RSPEC in $RSPECS; do I=$((${I-0}+1)); done
+[ "$I" -lt 1 ] && panic 69 'cannot locate rock specification.'
+[ "$I" -gt 1 ] && panic 69 'too many rock specifications.'
+RSPEC="$RSPECS"
+unset RSPECS
+
+PACKAGE="${RSPEC%%-$OLD.rockspec}"
+[ "$PACKAGE" ] || panic 69 'cannot determine package name.'
+[ "$(getvalue "$RSPEC" package)" = "$PACKAGE" ] || \
+    panic 69 '%s: name in rock specification differs.' "$PACKAGE"
+
+[ "$(getvalue "$RSPEC" version)" = "$OLD" ] || \
+    panic 69 '%s: version in rock specification differs.' "$OLD"
+
+if [ -e Makefile ] && grep -qe '^test:' Makefile; then
+    make test || exit
+fi
+
+if [ -e test/test ]; then
+    test/test || exit
+fi
+
+find src -iname '*.lua' \
+    -exec sed -i "$BACKUP_SUFFIX" "/^[[:space:]]*--/ s/\\(@release[[:space:]]\\{1,\\}\\)$OLD/\\1$NEW/g" \{\} \;
+git add src
+
+if [ -e Makefile ] && grep -qe '^test:' Makefile; then
+    make test || panic 96 'tests failed after bumping version number.'
+fi
+
+if [ -e test/test ]; then
+    test/test || exit
+fi
+
+find doc -iname '*.md' \
+    -exec sed -i "$BACKUP_SUFFIX" "/$PACKAGE/ s/$OLD/$NEW/g" \{\} \;
+git add doc
+
+find . -maxdepth 0 -iname 'README.*' \
+    -exec sed -i "$BACKUP_SUFFIX" "/$PACKAGE/ s/$OLD/$NEW/g" \{\} \;
+(set +f; git add README.*)
+
+NRSPEC="$PACKAGE-$NEW.rockspec"
+git mv "$RSPEC" "$NRSPEC"
+setvalue "$NRSPEC" version "$NEW"
+setvalue "$NRSPEC" tag "v$NEW"
+git add "$NRSPEC"
+
+git commit -m 'Bumped up version number.'
+
+meta/update-docs
+
+git push
+TAG="v$NEW"
+git tag "$TAG"
+git push origin "refs/tags/$TAG"
+
+luarocks pack "$NRSPEC"

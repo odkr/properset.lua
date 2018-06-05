@@ -1,0 +1,5 @@
+# sed backups 
+*.backup
+
+# rocks
+*.src.rock
