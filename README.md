@@ -3,15 +3,13 @@ properset.lua
 
 Allows to handles sets, including complex ones, -- properly.
 
-`properset` allows to properly handle sets that contain objects, tables,
-or other sets, provides functions for basic set arithmetics, sports a sane
-interface, and is well-documented.
+`properset` allows to properly handle sets that contain objects, tables, or
+other sets and can handle cyclic sets, that is, sets that reference themselves
+or that contain sets that reference themselves. Moreover, it provides functions
+for basic set arithmetics, sports a sane interface, and is well-documented.
 
-However, `properset` is **not** quite production-ready. The interface is
-in flux and `ofrank` and `atlevel` will overflow the stack when run on 
-cyclic sets.
-
-Also, the test suite isn't complete yet.
+However, `properset` is *not* quite production-ready. The interface 
+may still change and the test suite isn't complete yet.
 
 
 Approaches to Handling Sets in Lua
