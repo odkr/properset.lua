@@ -91,8 +91,16 @@
 	<td class="summary">Deletes members from a set.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#Set:clear">Set:clear ()</a></td>
+	<td class="summary">Removes all members from the set.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#Set:isempty">Set:isempty ()</a></td>
 	<td class="summary">Tests whether the set is empty.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set:isfrozen">Set:isfrozen ()</a></td>
+	<td class="summary">Tests whether the set is frozen.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set:has">Set:has (obj)</a></td>
@@ -131,7 +139,7 @@
 	<td class="summary">Unpacks the members of the set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:sorted">Set:sorted ([callable])</a></td>
+	<td class="name" nowrap><a href="#Set:sorted">Set:sorted ([callable[, flags=0]])</a></td>
 	<td class="summary">Returns the members of the set sorted.</td>
 	</tr>
 	<tr>
@@ -202,11 +210,19 @@
 	<td class="summary">Creates a new instance of a set prototype, typically <a href="index.html#FrozenSet">FrozenSet</a>.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#FrozenSet:isfrozen">FrozenSet:isfrozen ()</a></td>
+	<td class="summary">Tests whether the set is frozen.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#FrozenSet.add">FrozenSet.add ()</a></td>
 	<td class="summary">Blocks accidential modifications of a set or its members.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#FrozenSet.remove">FrozenSet.remove ()</a></td>
+	<td class="summary">Blocks accidential modifications of a set or its members.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#FrozenSet.clear">FrozenSet.clear ()</a></td>
 	<td class="summary">Blocks accidential modifications of a set or its members.</td>
 	</tr>
 	<tr>
@@ -269,8 +285,7 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#ASNUM">ASNUM</a></td>
-	<td class="summary">If this flag is passed to <code>Set.id</code>,
- the set&rsquo;s ID is returned as a number.</td>
+	<td class="summary">If this flag is passed to <a href="index.html#Set:id">Set:id</a>, the set&rsquo;s ID is returned as a number.</td>
 	</tr>
 </table>
 
@@ -403,7 +418,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <dd>
     Deletes members from a set. </p>
 
-<p> Don&rsquo;t remove members of a set while you're iterating over it.
+<p> Don&rsquo;t remove members from a set while you're iterating over it.
 
 
     <h3>Parameters:</h3>
@@ -423,6 +438,29 @@ Set: <span class="number">0x7f8a555d4df0</span>
 &gt; a:remove{<span class="number">2</span>, <span class="number">3</span>}
 &gt; a
 {<span class="number">1</span>}</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set:clear"></a>
+    <strong>Set:clear ()</strong>
+    </dt>
+    <dd>
+    Removes all members from the set. </p>
+
+<p> Don&rsquo;t remove members from a set while you're iterating over it.
+
+
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; a:clear()
+&gt; a
+{}</pre>
     </ul>
 
 </dd>
@@ -451,6 +489,32 @@ Set: <span class="number">0x7f8a555d4df0</span>
 <span class="keyword">true</span>
 &gt; b = Set{<span class="number">1</span>}
 &gt; b:isempty()
+<span class="keyword">false</span></pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set:isfrozen"></a>
+    <strong>Set:isfrozen ()</strong>
+    </dt>
+    <dd>
+    Tests whether the set is frozen.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+        <code>false</code>.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set()
+&gt; a:isfrozen()
 <span class="keyword">false</span></pre>
     </ul>
 
@@ -809,7 +873,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 </dd>
     <dt>
     <a name = "Set:sorted"></a>
-    <strong>Set:sorted ([callable])</strong>
+    <strong>Set:sorted ([callable[, flags=0]])</strong>
     </dt>
     <dd>
     Returns the members of the set sorted. </p>
@@ -823,6 +887,13 @@ Set: <span class="number">0x7f8a555d4df0</span>
             <span class="types"><span class="type">function</span></span>
          A sorting function.
          (<em>optional</em>)
+        </li>
+        <li><span class="parameter">flags</span>
+            <span class="types"><span class="type">number</span></span>
+         If <a href="index.html#RECURSIVE">RECURSIVE</a> is set, then sorts not
+  only this set, but all sets that are members of this set, members of
+  those sets, and so forth.
+         (<em>default</em> 0)
         </li>
     </ul>
 
@@ -1325,9 +1396,10 @@ set is frozen.
     <h2 class="section-header has-description"><a name="Class_FrozenSet"></a>Class FrozenSet </h2>
 
           <div class="section-description">
-          Frozen Sets are just sets whose <a href="index.html#FrozenSet.add">add</a> and <a href="index.html#Set:remove">remove</a> methods raises an error.
- They can be populated when they are created but cannot be changed thereafter
- (through their interface at any rate).
+          Frozen Sets are just sets whose <a href="index.html#FrozenSet.add">add</a>, <a href="index.html#Set:remove">remove</a>, and <a href="index.html#Set:clear">clear</a> methods raise
+ an error.  They can be populated when they are created but cannot be changed
+ thereafter (through their interface at any rate). The prototype of
+ <a href="index.html#FrozenSet">FrozenSet</a> is <a href="index.html#Set">Set</a>, so, otherwise, they behave in the same way as Sets.
           </div>
     <dl class="function">
     <dt>
@@ -1368,6 +1440,32 @@ set is frozen.
 
 </dd>
     <dt>
+    <a name = "FrozenSet:isfrozen"></a>
+    <strong>FrozenSet:isfrozen ()</strong>
+    </dt>
+    <dd>
+    Tests whether the set is frozen.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+        <code>true</code>.
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = FrozenSet()
+&gt; a:isfrozen()
+<span class="keyword">true</span></pre>
+    </ul>
+
+</dd>
+    <dt>
     <a name = "FrozenSet.add"></a>
     <strong>FrozenSet.add ()</strong>
     </dt>
@@ -1386,6 +1484,22 @@ set is frozen.
     <dt>
     <a name = "FrozenSet.remove"></a>
     <strong>FrozenSet.remove ()</strong>
+    </dt>
+    <dd>
+    Blocks accidential modifications of a set or its members.
+
+
+
+
+    <h3>Raises:</h3>
+    An error whenever it&rsquo;s invoked.
+
+
+
+</dd>
+    <dt>
+    <a name = "FrozenSet.clear"></a>
+    <strong>FrozenSet.clear ()</strong>
     </dt>
     <dd>
     Blocks accidential modifications of a set or its members.
@@ -1766,6 +1880,7 @@ set is frozen.
 
 <p> Handles metatables, recursive structures, tables as keys, and
  avoids the <a href="index.html#Set.mt.__pairs">__pairs</a> and <a href="index.html#Set.mt:__newindex">__newindex</a> metamethods.
+ Copies are deep.
 
 
     <h3>Parameters:</h3>
@@ -1831,6 +1946,7 @@ set is frozen.
 <li><a href="index.html#Set:ofrank">Set:ofrank</a></li>
 <li><a href="index.html#Set:totable">Set:totable</a></li>
 <li><a href="index.html#Set:unpack">Set:unpack</a></li>
+<li><a href="index.html#Set:sorted">Set:sorted</a></li>
 </ul>
 
 
@@ -1847,8 +1963,7 @@ set is frozen.
     <strong>ASNUM</strong>
     </dt>
     <dd>
-    If this flag is passed to <code>Set.id</code>,
- the set&rsquo;s ID is returned as a number. </p>
+    If this flag is passed to <a href="index.html#Set:id">Set:id</a>, the set&rsquo;s ID is returned as a number. </p>
 
 <p> Only used by <a href="index.html#Set:id">Set:id</a>.
 
@@ -1866,7 +1981,7 @@ set is frozen.
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-06-05 11:31:53 </i>
+<i style="float:right;">Last updated 2018-06-05 12:56:10 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
