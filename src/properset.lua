@@ -49,9 +49,6 @@ local _ENV = properset
 -- Private constants
 -- =================
 
--- Error message shown on attempts to add a set to itself.
-local SELFMEMERR = "sets cannot be members of themselves."
-
 -- Error message shown on attempts to change a `Set`.
 local SETMODERR = "sets can only be modified using 'add' and 'remove'."
 
@@ -190,7 +187,6 @@ function Set:add (elems)
     -- This must be `pairs` to handle sparse arrays correctly.
     for _, v in pairs(elems) do
         if not has(self, v) then
-            if rawequal(self, v) then error(SELFMEMERR, 2) end
             -- @todo Test if it's faster without passing n.
             n = uad(self, v, n) or n
         end
