@@ -50,7 +50,7 @@ local _ENV = properset
 -- =================
 
 -- Error message shown on attempts to change a `Set`.
-local SETMODERR = "sets can only be modified using 'add' and 'remove'."
+local SETMODERR = "sets can only be modified by 'add', 'remove' and 'clear'."
 
 -- Format for error shown if a value isn't a set.
 local NOTASETERR = 'expected a Set, got a %s.'
@@ -196,7 +196,7 @@ end
 
 --- Deletes members from a set.
 --
--- Don't remove members of a set while you're iterating over it.
+-- Don't remove members from a set while you're iterating over it.
 --
 -- @tparam table mems A list of members to be removed.
 --
@@ -227,6 +227,22 @@ function Set:remove (mems)
 end
 
 
+--- Removes all members from the set.
+--
+-- Don't remove members from a set while you're iterating over it.
+--
+-- @usage
+--      > a = Set{1, 2}
+--      > a:clear()
+--      > a
+--      {}
+function Set:clear ()
+    self._val.mem = {}
+    self._val.len = 0
+    self._tab = {}
+end
+
+
 --- Tests whether the set is empty.
 --
 -- @treturn boolean Whether the set is empty.
@@ -240,6 +256,19 @@ end
 --      false
 function Set:isempty ()
     return #self == 0
+end
+
+
+--- Tests whether the set is frozen.
+--
+-- @treturn boolean `false`.
+--
+-- @usage
+--      > a = Set()
+--      > a:isfrozen()
+--      false
+function Set:isfrozen ()
+    return false
 end
 
 
@@ -873,9 +902,10 @@ end
 
 
 ---
--- Frozen Sets are just sets whose `add` and `remove` methods raises an error.
--- They can be populated when they are created but cannot be changed thereafter
--- (through their interface at any rate).
+-- Frozen Sets are just sets whose `add`, `remove`, and `clear` methods raise
+-- an error. They can be populated when they are created but cannot be changed
+-- thereafter (through their interface at any rate). The prototype of
+-- `FrozenSet` is `Set`, so, otherwise, they behave in the same way as Sets.
 --
 -- @type FrozenSet
 FrozenSet = {}
@@ -906,6 +936,19 @@ function FrozenSet:new (elems)
 end
 
 
+--- Tests whether the set is frozen.
+--
+-- @treturn boolean `true`.
+--
+-- @usage
+--      > a = FrozenSet()
+--      > a:isfrozen()
+--      true
+function FrozenSet:isfrozen ()
+    return true
+end
+
+
 ---
 -- Blocks accidential modifications of a set or its members.
 --
@@ -920,6 +963,15 @@ end
 --
 -- @raise An error whenever it's invoked.
 function FrozenSet.remove ()
+    error(MODFROZENERR, 2)
+end
+
+
+---
+-- Blocks accidential modifications of a set or its members.
+--
+-- @raise An error whenever it's invoked.
+function FrozenSet.clear ()
     error(MODFROZENERR, 2)
 end
 
