@@ -35,7 +35,7 @@ local type = type
 local rawequal = rawequal
 local rawset = rawset
 
-local math = math
+local upvalueid = debug.upvalueid
 local huge = math.huge
 
 
@@ -65,7 +65,7 @@ local MODFROZENERR = 'set is immutable.'
 -- Private utility functions
 -- =========================
 
---- Adds an object to a set
+--- Adds an object to a set.
 --
 -- Neither checks whether the object is a member already,
 -- nor whether adding would make the set a a member of itself!
@@ -346,7 +346,7 @@ end
 
 --- All members of rank *n*.
 --
--- `a:flatten()` and `a:ofrank(0, propertyset.RECURSIVE)` are equivalent.
+-- `a:flattened()` and `a:ofrank(0, propertyset.RECURSIVE)` are equivalent.
 --
 -- @tparam number n The rank.
 -- @tparam[opt=0] number flags If `RECURSIVE` is set, then searches members
@@ -376,17 +376,24 @@ end
 --      {}
 --
 -- @see rank
-function Set:ofrank (n, flags)
+function Set:ofrank (n, flags, s)
     flags = flags or 0
-    if n == 0 and flags & RECURSIVE == RECURSIVE then return self:flatten() end
+    -- `flattened` is faster than `ofrank`.
+    if n == 0 and flags & RECURSIVE == RECURSIVE then 
+        return self:flattened()
+    end
+    s = s or {}
     local isset = isset
     local rank = rank
-    local add = Set.add
     local res = Set:new()
+    local add = res.add
     for v in self:mems() do
-        if rank(v) == n then add(res, {v}) end
-        if flags & RECURSIVE == RECURSIVE and isset(v) then
-            res = res + v:ofrank(n, flags)
+        if not s[v] then
+            s[v] = true
+            if rank(v) == n then add(res, {v}) end
+            if flags & RECURSIVE == RECURSIVE and isset(v) then
+                res = res + v:ofrank(n, flags, s)
+            end
         end
     end
     return res
@@ -424,11 +431,11 @@ function Set:atlevel (n)
         return copy(self)
     else
         local isset = isset
-        local add = Set.add
         local res = Set:new()
+        local add = res.add
         for v in self:mems() do
             if isset(v) then
-                add(res, v:atlevel(n-1))
+                add(res, v:atlevel(n - 1))
             end
         end
         return res
@@ -530,7 +537,7 @@ end
 
 --- Returns the members of the set sorted.
 --
--- Keep in mind, sets may be multidimensional. Consider using `flatten`.
+-- Keep in mind, sets may be multidimensional.
 --
 -- @tparam[opt] function callable A sorting function.
 --
@@ -555,9 +562,9 @@ end
 -- @usage
 --      > a = Set{1, Set{2, 3}, 4}
 --      > b = a:power()
---      > b:flatten()
+--      > b:flattened()
 --      {1, 2, 3, 4}
-function Set:flatten ()
+function Set:flattened ()
     local isset = isset
     local res = Set:new()
     local add = res.add
@@ -581,6 +588,37 @@ function Set:flatten ()
         end
     end
     return res
+end
+
+
+--- Makes a set immutable.
+--
+-- @treturn FrozenSet The frozen set.
+--
+-- @usage
+--      > a = Set()
+--      > a:add{0}
+--      > a
+--      {0}
+--      > a:freeze()
+--      {0}
+--      > a:add{1}
+--      set is immutable.
+function Set:freeze ()
+    return setmetatable(self, FrozenSet.mt)
+end
+
+
+--- Does nothing.
+--
+-- @treturn Set The set.
+--
+-- @usage
+--      > a = Set()
+--      > a:unfreeze()
+--      {}
+function Set:unfreeze ()
+    return self
 end
 
 
@@ -887,6 +925,37 @@ end
 -- @raise An error whenever it's invoked.
 function FrozenSet.remove ()
     error(MODFROZENERR, 2)
+end
+
+
+--- Does nothing.
+--
+-- @treturn FrozenSet The frozen set.
+--
+-- @usage
+--      > a = FrozenSet()
+--      > a:freeze()
+--      {}
+function FrozenSet:freeze ()
+    return self
+end
+
+
+--- Make the set mutable.
+--
+-- @treturn Set The unfrozen set.
+--
+-- @usage
+--      > a = FrozenSet()
+--      > a:add{0}
+--      set is immutable.
+--      > a:unfreeze()
+--      {}
+--      > a:add{0}
+--      > a
+--      {0}
+function FrozenSet:unfreeze ()
+    return setmetatable(self, Set.mt)
 end
 
 
