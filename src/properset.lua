@@ -536,6 +536,9 @@ end
 -- Keep in mind, sets may be multidimensional.
 --
 -- @tparam[opt] function callable A sorting function.
+-- @tparam[opt=0] number flags If `RECURSIVE` is set, then sorts not
+--  only this set, but all sets that are members of this set, members of
+--  those sets, and so forth.
 --
 -- @treturn table A list of the members of the given set, sorted.
 --
@@ -544,8 +547,8 @@ end
 --      > r = a:sorted()
 --      > table.concat(r, ', ')
 --      1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-function Set:sorted (callable)
-    local t = self:totable()
+function Set:sorted (callable, flags)
+    local t = self:totable(flags)
     table.sort(t, callable)
     return t
 end
@@ -1207,6 +1210,7 @@ end
 --
 -- Handles metatables, recursive structures, tables as keys, and
 -- avoids the `__pairs` and `__newindex` metamethods.
+-- Copies are deep.
 --
 -- @param obj Object or value of an arbitrary type.
 --
@@ -1253,6 +1257,7 @@ emptyset = FrozenSet:new()
 --  * `Set:ofrank`
 --  * `Set:totable`
 --  * `Set:unpack`
+--  * `Set:sorted`
 RECURSIVE = 1
 
 --- If this flag is passed to `Set:id`, the set's ID is returned as a number.
@@ -1261,5 +1266,7 @@ RECURSIVE = 1
 ASNUM = 1
 
 
+-- Backplate
+-- =========
 
 return properset
