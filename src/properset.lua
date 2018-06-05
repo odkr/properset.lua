@@ -56,7 +56,7 @@ local SETMODERR = "sets can only be modified using 'add' and 'remove'."
 local NOTASETERR = 'expected a Set, got a %s.'
 
 -- Format for error shown if `add` or `remove` are invoked for `FrozenSet`.
-local MODFROZENERR = 'set is immutable.'
+local MODFROZENERR = 'set is frozen.'
 
 
 -- Private utility functions
@@ -599,7 +599,8 @@ end
 --      > a:freeze()
 --      {0}
 --      > a:add{1}
---      set is immutable.
+--      set is frozen.
+--      [...]
 function Set:freeze ()
     return setmetatable(self, FrozenSet.mt)
 end
@@ -869,11 +870,9 @@ end
 
 
 ---
--- Immutable Sets are just sets without an `add` and a `remove` method.
--- (Strictly speaking, they have those methods, but calling them
--- results in a runtime error.) They can be populated when they are
--- created but cannot be changed afterwards (through their interface
--- at any rate).
+-- Frozen Sets are just sets whose `add` and `remove` methods raises an error.
+-- They can be populated when they are created but cannot be changed thereafter
+-- (through their interface at any rate).
 --
 -- @type FrozenSet
 FrozenSet = {}
@@ -899,10 +898,8 @@ FrozenSet.mt.__index = FrozenSet
 --      {1, 2, 3}
 function FrozenSet:new (elems)
     self = self or FrozenSet
-    local set = {_val = {len = 0, mem = {}}, _tab = {}}
-    setmetatable(set, self.mt)
-    if elems then Set.add(set, elems) end
-    return set
+    local set = Set:new(elems)
+    return setmetatable(set, self.mt)
 end
 
 
@@ -944,7 +941,8 @@ end
 -- @usage
 --      > a = FrozenSet()
 --      > a:add{0}
---      set is immutable.
+--      set is frozen.
+--      [...]
 --      > a:unfreeze()
 --      {}
 --      > a:add{0}
