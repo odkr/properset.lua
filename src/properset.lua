@@ -53,13 +53,13 @@ local _ENV = properset
 local SELFMEMERR = "sets cannot be members of themselves."
 
 -- Error message shown on attempts to change a `Set`.
-local SETMODERR = "sets can only be modified using 'add' and 'delete'."
+local SETMODERR = "sets can only be modified using 'add' and 'remove'."
 
 -- Format for error shown if a value isn't a set.
 local NOTASETERR = 'expected Set, got a %s.'
 
--- Format for error shown if `add` or `delete` are invoked for `ImmutableSet`.
-local IMMUTABERR = 'set is immutable.'
+-- Format for error shown if `add` or `remove` are invoked for `FrozenSet`.
+local MODFROZENERR = 'set is immutable.'
 
 
 -- Private utility functions
@@ -77,7 +77,7 @@ local IMMUTABERR = 'set is immutable.'
 --
 -- @return number If `obj` is a table, index at which it was stored;
 --  otherwise, `nil`.
-local function direct_add (set, obj, n)
+local function unchkdadd (set, obj, n)
     local vt = set._val
     local vs = vt.mem
     local ts = set._tab
@@ -101,7 +101,7 @@ end
 
 ---
 -- Sets contain every item at most once.
--- They can only be modified using `add` and `delete`.
+-- They can only be modified using `add` and `remove`.
 -- And set members are (mostly) immutable.
 --
 -- You should *not* attempt to modify set members.
@@ -141,8 +141,7 @@ setmetatable(Set, {__call = Set.new})
 
 --- Returns the ID of the set.
 --
--- @tparam[opt=0] number flags If flags is equal to `ASNUM`, 
---  then the ID is returned as a number. 
+-- @tparam[opt=0] number flags If `ASNUM` is set, returns the ID as a number. 
 --
 -- @treturn number The ID.
 --
@@ -185,7 +184,7 @@ end
 --      > a
 --      {1, 2}
 function Set:add (elems)
-    local dad = direct_add
+    local uad = unchkdadd
     local has = self.has
     local n
     -- This must be `pairs` to handle sparse arrays correctly.
@@ -193,7 +192,7 @@ function Set:add (elems)
         if not has(self, v) then
             if rawequal(self, v) then error(SELFMEMERR, 2) end
             -- @todo Test if it's faster without passing n.
-            n = dad(self, v, n) or n
+            n = uad(self, v, n) or n
         end
     end
 end
@@ -201,16 +200,16 @@ end
 
 --- Deletes members from a set.
 --
--- Don't delete members of a set while you're iterating over it.
+-- Don't remove members of a set while you're iterating over it.
 --
--- @tparam table mems A list of members to be deleted.
+-- @tparam table mems A list of members to be removed.
 --
 -- @usage
 --      > a = Set{1, 2, 3}
---      > a:delete{2, 3}
+--      > a:remove{2, 3}
 --      > a
 --      {1}
-function Set:delete (mems)
+function Set:remove (mems)
     local rem = table.remove
     local vt = self._val
     local vs = vt.mem
@@ -238,12 +237,12 @@ end
 --
 -- @usage
 --      > a = Set()
---      > a:is_empty()
+--      > a:isempty()
 --      true
 --      > b = Set{1}
---      > b:is_empty()
+--      > b:isempty()
 --      false
-function Set:is_empty ()
+function Set:isempty ()
     return #self == 0
 end
 
@@ -264,7 +263,7 @@ function Set:has (obj, s)
     if type(obj) == 'table' then
         if s and s[obj] then return true end
         local ts = self._tab
-        if is_set(obj) then
+        if isset(obj) then
             if s then s[obj] = true else s = {[obj] = true} end
             local eq = getmetatable(obj).__eq
             for i = 1, #ts do if eq(obj, ts[i], s) then return true end end
@@ -327,7 +326,7 @@ end
 --      > a:power()
 --      {{0, 1}, {1}, {}, {0}}
 function Set:power ()
-    local dad = direct_add
+    local uad = unchkdadd
     local cop = copy
     local res = Set:new()
     local rt = res._tab
@@ -336,7 +335,7 @@ function Set:power ()
     for v in self:mems() do
         for i = 1, n do
             local s = cop(rt[i])
-            dad(s, v)
+            uad(s, v)
             n = n + 1
             rt[n] = s
         end
@@ -347,12 +346,11 @@ end
 
 --- All members of rank *n*.
 --
--- `a:flatten()` and `a:of_rankn(0, propertyset.RECURSIVE)` are equivalent.
+-- `a:flatten()` and `a:ofrank(0, propertyset.RECURSIVE)` are equivalent.
 --
 -- @tparam number n The rank.
--- @tparam[opt=0] number flags If equal to `RECURSIVE`, then members of the
---  set that are sets, members of those sets that are sets, ..., are searched
---   for members of the given rank, too.
+-- @tparam[opt=0] number flags If `RECURSIVE` is set, then searches members
+--   of the set that are sets, members of those sets that are sets, ..., too.
 --
 -- @treturn Set The members of rank *n*.
 --
@@ -360,37 +358,35 @@ end
 --      > a = Set{1, Set{2, Set{3, 4}, Set{5}}, Set{6}}
 --      > a
 --      {1, {2, {3, 4}, {5}}, {6}}
---      > a:of_rankn(0)
+--      > a:ofrank(0)
 --      {1}
---      > a:of_rankn(1)
+--      > a:ofrank(1)
 --      {{6}}
---      > a:of_rankn(2)
+--      > a:ofrank(2)
 --      {{2, {3, 4}, {5}}}
---      > a:of_rankn(3)
+--      > a:ofrank(3)
 --      {}
---      > a:of_rankn(0, true)
+--      > a:ofrank(0, true)
 --      {1, 2, 3, 4, 5, 6}
---      > a:of_rankn(1, true)
+--      > a:ofrank(1, true)
 --      {{3, 4}, {5}, {6}}
---      > a:of_rankn(2, true)
+--      > a:ofrank(2, true)
 --      {{2, {3, 4}, {5}}}
---      > a:of_rankn(3, true)
+--      > a:ofrank(3, true)
 --      {}
 --
 -- @see rank
-function Set:of_rankn (n, flags)
-    -- @fixme: this one is broken: for a set {1, {2, {3, {4}}}}
-    -- rankof (1, RECURSIVE) returns {} instead of {{1}}.
+function Set:ofrank (n, flags)
     flags = flags or 0
     if n == 0 and flags & RECURSIVE == RECURSIVE then return self:flatten() end
-    local is_set = is_set
+    local isset = isset
     local rank = rank
     local add = Set.add
     local res = Set:new()
     for v in self:mems() do
         if rank(v) == n then add(res, {v}) end
-        if flags & RECURSIVE == RECURSIVE and is_set(v) then
-            res = res + v:of_rankn(n, flags)
+        if flags & RECURSIVE == RECURSIVE and isset(v) then
+            res = res + v:ofrank(n, flags)
         end
     end
     return res
@@ -414,25 +410,25 @@ end
 --      > a = Set{1, Set{2, Set{3, 4}, Set{5}}, Set{6}}
 --      > a
 --      {1, {2, {3, 4}, {5}}, {6}}
---      > a:at_leveln(1)
+--      > a:atlevel(1)
 --      {1, {2, {3, 4}, {5}}, {6}}
---      > a:at_leveln(2)
+--      > a:atlevel(2)
 --      {2, {3, 4}, {5}, 6}
---      > a:at_leveln(3)
+--      > a:atlevel(3)
 --      {3, 4, 5}
---      > a:at_leveln(4)
+--      > a:atlevel(4)
 --      {}
-function Set:at_leveln (n)
+function Set:atlevel (n)
     assert(n > 0, "'n' must be greater than 0.")
     if n == 1 then
         return copy(self)
     else
-        local is_set = is_set
+        local isset = isset
         local add = Set.add
         local res = Set:new()
         for v in self:mems() do
-            if is_set(v) then
-                add(res, v:at_leveln(n-1))
+            if isset(v) then
+                add(res, v:atlevel(n-1))
             end
         end
         return res
@@ -484,9 +480,8 @@ end
 
 --- The members of the set as a table.
 --
--- @tparam[opt=0] number flags If equal to `RECURSIVE`, then members of the
---  set that are sets, members of those sets that are sets, ..., are converetd
---  to tables, too.
+-- @tparam[opt=0] number flags If `RECURSIVE` is set, then converts members of
+--   the set that are sets, members of those sets that are sets, ..., too.
 --
 -- @treturn table All members of the set.
 --
@@ -496,7 +491,7 @@ end
 --      > table.unpack(r)
 --      1       2       3
 function Set:totable (flags, s)
-    local is_set = is_set
+    local isset = isset
     local flags = flags or 0
     local s = s or {}
     local res = {}
@@ -504,7 +499,7 @@ function Set:totable (flags, s)
     s[self] = res
     for i in self:mems() do
         n = n + 1
-        if flags & RECURSIVE == RECURSIVE and is_set(i) then
+        if flags & RECURSIVE == RECURSIVE and isset(i) then
             if s[i] then res[n] = s[i]
                     else res[n] = i:totable(flags, s)
             end
@@ -518,9 +513,9 @@ end
 
 --- Unpacks the members of the set.
 --
--- @tparam[opt=0] number flags If equal to `RECURSIVE`, then unpacks not
---  only this set, but all sets that are members of this set, members of those
---  sets, and so forth.
+-- @tparam[opt=0] number flags If `RECURSIVE` is set, then unpacks not
+--  only this set, but all sets that are members of this set, members of
+--  those sets, and so forth.
 --
 -- @return The members of the given set unpacked.
 --
@@ -563,7 +558,7 @@ end
 --      > b:flatten()
 --      {1, 2, 3, 4}
 function Set:flatten ()
-    local is_set = is_set
+    local isset = isset
     local res = Set:new()
     local add = res.add
     local s = {}
@@ -572,7 +567,7 @@ function Set:flatten ()
     local n = 0
     while n <= l do
         n = n + 1
-        if is_set(q[n]) then
+        if isset(q[n]) then
             if not s[q[n]] then
                 s[q[n]] = true
                 local t = q[n]:totable()
@@ -680,8 +675,7 @@ Set.mt.__pairs = Set.mt.__ipairs
 --      > c <= a
 --      false
 function Set.mt:__le (other, s)
-    assert_set(other, 'other')
-    s = s or {}
+    assert(isset(other))
     local has = other.has
     for i in self:mems() do
         if not has(other, i, s) then return false end
@@ -712,7 +706,7 @@ end
 --      > c < a
 --      false
 function Set.mt:__lt (other)
-    assert_set(other, 'other')
+    assert(isset(other))
     if #self < #other then return self <= other end
     return false
 end
@@ -740,9 +734,8 @@ end
 --      > a ~= c
 --      true
 function Set.mt:__eq (other, s)
-    if not is_set(other) or not is_set(self) then return false end
+    if not isset(other) or not isset(self) then return false end
     if #self ~= #other then return false end 
-    s = s or {}
     return getmetatable(self).__le(self, other, s)
 end
 
@@ -820,13 +813,13 @@ end
 --      {1, {2, 3}, 4}
 function Set.mt:__tostring (s)
     local tostring = tostring
-    local is_set = is_set
+    local isset = isset
     local s = s or {}
     local t = {}
     local n = 0
     for v in self:mems() do
         n = n + 1
-        if is_set(v) then
+        if isset(v) then
             if not s[v] then
                 s[v] = true
                 t[n] = getmetatable(v).__tostring(v, s)
@@ -842,23 +835,23 @@ end
 
 
 ---
--- Immutable Sets are just sets without an `add` and a `delete` method.
+-- Immutable Sets are just sets without an `add` and a `remove` method.
 -- (Strictly speaking, they have those methods, but calling them
 -- results in a runtime error.) They can be populated when they are
 -- created but cannot be changed afterwards (through their interface
 -- at any rate).
 --
--- @type ImmutableSet
-ImmutableSet = {}
-ImmutableSet.mt = {}
+-- @type FrozenSet
+FrozenSet = {}
+FrozenSet.mt = {}
 -- That I have to do this is a design flaw in Lua.
-for k, v in pairs(Set.mt) do ImmutableSet.mt[k] = v end
-ImmutableSet.mt.__index = ImmutableSet
+for k, v in pairs(Set.mt) do FrozenSet.mt[k] = v end
+FrozenSet.mt.__index = FrozenSet
 
 
---- Creates a new instance of a set prototype, typically `ImmutableSet`.
+--- Creates a new instance of a set prototype, typically `FrozenSet`.
 --
--- Note: You cannot create instances of `ImmutableSet` using `Set.new`.
+-- Note: You cannot create instances of `FrozenSet` using `Set.new`.
 --
 -- @tparam[opt] table elems Members for the new set.
 --
@@ -866,12 +859,12 @@ ImmutableSet.mt.__index = ImmutableSet
 --  populated with `members`, if any were given.
 --
 -- @usage
---      > ImmutableSet:new{1, 2, 3}
+--      > FrozenSet:new{1, 2, 3}
 --      {1, 2, 3}
---      > ImmutableSet{1, 2, 3}
+--      > FrozenSet{1, 2, 3}
 --      {1, 2, 3}
-function ImmutableSet:new (elems)
-    self = self or ImmutableSet
+function FrozenSet:new (elems)
+    self = self or FrozenSet
     local set = {_val = {len = 0, mem = {}}, _tab = {}}
     setmetatable(set, self.mt)
     if elems then Set.add(set, elems) end
@@ -883,8 +876,8 @@ end
 -- Blocks accidential modifications of a set or its members.
 --
 -- @raise An error whenever it's invoked.
-function ImmutableSet.add ()
-    error(IMMUTABERR, 2)
+function FrozenSet.add ()
+    error(MODFROZENERR, 2)
 end
 
 
@@ -892,15 +885,15 @@ end
 -- Blocks accidential modifications of a set or its members.
 --
 -- @raise An error whenever it's invoked.
-function ImmutableSet.delete ()
-    error(IMMUTABERR, 2)
+function FrozenSet.remove ()
+    error(MODFROZENERR, 2)
 end
 
 
 -- This must be done after the functions have been added.
--- Once `Set` is the metatable of `ImmutableSet`,
+-- Once `Set` is the metatable of `FrozenSet`,
 -- its members can no longer be changed.
-setmetatable(ImmutableSet, Set.mt)
+setmetatable(FrozenSet, Set.mt)
 
 
 --- Set arithmetics
@@ -917,11 +910,11 @@ setmetatable(ImmutableSet, Set.mt)
 --      > b = Set{1, 2}
 --      > c = Set{2}
 --      > d = Set{3}
---      > properset.are_disjoint{a, b, c}
+--      > properset.aredisjoint{a, b, c}
 --      false
---      > properset.are_disjoint{a, c, d}
+--      > properset.aredisjoint{a, c, d}
 --      true
-function are_disjoint (sets)
+function aredisjoint (sets)
     local int = intersection
     for i = 1, #sets do
         for j = i + 1, #sets do
@@ -948,15 +941,16 @@ end
 --      > properset.complement(a, b)
 --      {1}
 function complement (a, b)
-    assert_set(a, 'a')
-    assert_set(b, 'b')
+    -- @todo make n-ary; perhaps as in Python?
+    assert(isset(a))
+    assert(isset(b))
     local has = b.has
-    local dad = direct_add
+    local uad = unchkdadd
     local res = Set:new()
     local n = 1
     for v in a:mems() do
         -- @todo Test if it's faster without passing n around.
-        if not has(b, v) then n = dad(res, v, n) end
+        if not has(b, v) then n = uad(res, v, n) end
     end
     return res
 end
@@ -977,12 +971,12 @@ end
 --      > properset.union{a, b, c}
 --      {1, 2, 3}
 function union (sets)
-    local ass = assert_set
+    local ass = function (x) assert(isset(x)) end 
     local add = Set.add
     local res = Set:new()
     local n = #sets
     for i = 1, n do
-        ass(sets[i], "arg " .. i)
+        ass(sets[i])
         add(res, sets[i])
     end
     return res
@@ -1005,7 +999,7 @@ end
 --      > properset.intersection{a, b, d}
 --      {1}
 function intersection (sets)
-    local ass = assert_set
+    local ass = function (x) assert(isset(x)) end
     local n = #sets
     if n == 1 then
         return sets[1]
@@ -1015,7 +1009,7 @@ function intersection (sets)
         local res
         local acc = sets[1]
         for i = 2, n do
-            ass(sets[i], "arg " .. i)
+            ass(sets[i])
             res = Set:new()
             for v in acc:mems() do
                 -- @todo Check if properset.add would work.
@@ -1049,13 +1043,13 @@ end
 --      > properset.difference{a, b, c}
 --      {1, 4}
 function difference (sets)
-    local ass = assert_set
+    local ass = function (x) assert(isset(x)) end
     local com = complement
     local uni = union
     local int = intersection
     local res = Set:new()
     for i = 1, #sets do
-        ass(sets[i], "arg " .. i)
+        ass(sets[i])
         res = com(uni{res, sets[i]}, int{res, sets[i]})
     end
     return res
@@ -1073,14 +1067,15 @@ end
 --
 -- @usage
 --      > a = Set()
---      > properset.is_set(a)
+--      > properset.isset(a)
 --      true
 --      > b = "I may be many things, but a Set I'm not."
---      > properset.is_set(b)
+--      > properset.isset(b)
 --      false
-function is_set (obj)
+function isset (obj)
     local rawequal = rawequal
-    if type(obj) == 'table' then
+    local t = type(obj)
+    if t == 'table' then
         local meta = getmetatable(obj)
         if meta == nil then return false end
         for k in pairs(Set.mt) do 
@@ -1091,20 +1086,7 @@ function is_set (obj)
         end
         return true
     end
-    return false
-end
-
-
---- Asserts that an object is a set.
---
--- @param obj An object.
--- @param[opt] var The name of the variable.
---
--- @raise An error if `obj` isn't a `Set` (or implements the Set protocol).
-function assert_set (obj, var)
-    local err = string.format(NOTASETERR, type(obj))
-    if var then err = string.format('%q: ', var) .. err end
-    assert(is_set(obj), err)
+    return false, string.format(NOTASETERR, t)
 end
 
 
@@ -1132,13 +1114,13 @@ end
 --      > properset.rank(b)
 --      4
 function rank (obj, s)
-    local is_set = is_set
-    if not is_set(obj) then return 0 end
+    local isset = isset
+    if not isset(obj) then return 0 end
     s = s or {}
     local rank = rank
     local res = 1
     for v in obj:mems() do
-        if is_set(v) then
+        if isset(v) then
             if s[v] then return huge end
             s[v] = true
             local r = rank(v, s) + 1
@@ -1187,8 +1169,8 @@ end
 
 --- The empty set.
 --
--- @field emptyset The empty set (`ImmutableSet:new()`).
-emptyset = ImmutableSet:new()
+-- @field emptyset The empty set (`FrozenSet:new()`).
+emptyset = FrozenSet:new()
 
 
 --- If this flag is passed to a method that understands it,
@@ -1196,8 +1178,9 @@ emptyset = ImmutableSet:new()
 --
 -- Currently used by:
 --
+--  * `Set:ofrank`
 --  * `Set:totable`
---  * `Set:of_rankn`
+--  * `Set:unpack`
 RECURSIVE = 1
 
 --- If this flag is passed to `Set.id`,
