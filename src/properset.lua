@@ -403,13 +403,13 @@ end
 --      {{2, {3, 4}, {5}}}
 --      > a:ofrank(3)
 --      {}
---      > a:ofrank(0, true)
+--      > a:ofrank(0, properset.RECURSIVE)
 --      {1, 2, 3, 4, 5, 6}
---      > a:ofrank(1, true)
+--      > a:ofrank(1, properset.RECURSIVE)
 --      {{3, 4}, {5}, {6}}
---      > a:ofrank(2, true)
+--      > a:ofrank(2, properset.RECURSIVE)
 --      {{2, {3, 4}, {5}}}
---      > a:ofrank(3, true)
+--      > a:ofrank(3, properset.RECURSIVE)
 --      {}
 --
 -- @see rank
