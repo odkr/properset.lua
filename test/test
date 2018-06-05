@@ -260,12 +260,12 @@ TestBootstrap = {}
         local a = Set:new()
 
         -- These are basic operations.
-        lu.assertTrue(properset.is_set(a))
-        lu.assertFalse(properset.is_set(nil))
-        lu.assertFalse(properset.is_set(0))
-        lu.assertFalse(properset.is_set('also not a set.'))
-        lu.assertFalse(properset.is_set(function() return nil end))
-        lu.assertFalse(properset.is_set(tables.num_e1_1))
+        lu.assertTrue(properset.isset(a))
+        lu.assertFalse(properset.isset(nil))
+        lu.assertFalse(properset.isset(0))
+        lu.assertFalse(properset.isset('also not a set.'))
+        lu.assertFalse(properset.isset(function() return nil end))
+        lu.assertFalse(properset.isset(tables.num_e1_1))
 
         -- Test prototyping.
         local b = {}
@@ -274,11 +274,11 @@ TestBootstrap = {}
         for k, v in pairs(a_mt) do b_mt[k] = v end
         b_mt.__index = a
         setmetatable(b, b_mt)
-        lu.assertTrue(properset.is_set(b))
+        lu.assertTrue(properset.isset(b))
 
         -- Test sets of sets.
         local c = Set:new{a}
-        lu.assertTrue(properset.is_set(a))
+        lu.assertTrue(properset.isset(a))
     end
 
 
@@ -1776,7 +1776,7 @@ TestTable = {}
 
 ---
 -- It's useful to iterate over sets as if they were tables.
--- And `set` and `delete` make use of that.
+-- And `set` and `remove` make use of that.
 --
 -- @table Tests for iterators.
 TestIterators = {}
@@ -1981,7 +1981,7 @@ TestCoreErrors = {}
     
     --- Tests whether modifications of the set are blocked.
     function TestCoreErrors.TestSetNewIndex ()
-        local err = ".*sets can only be modified using 'add' and 'delete'%."
+        local err = ".*sets can only be modified using 'add' and 'remove'%."
         local a = Set()
         lu.assertErrorMsgMatches(err, function() a[1] = 1 end)
         lu.assertErrorMsgMatches(err, function() a.b = 1 end)
@@ -1998,7 +1998,7 @@ TestManipulation = {}
     function TestManipulation.TestSetDelete ()
         local t = {1, 2}
         local a = Set({1, 2, 3})
-        a:delete{3}
+        a:remove{3}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
@@ -2011,7 +2011,7 @@ TestManipulation = {}
 
         -- Let's test for something weird.
         -- This should do nothing:
-        a:delete{nil}
+        a:remove{nil}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
         lu.assertEquals(a._val.len, #t)
@@ -2019,7 +2019,7 @@ TestManipulation = {}
         lu.assertEquals(a, Set{1, 2})
         lu.assertEquals(#a, 2)    
 
-        a:delete{nil, nil, nil}
+        a:remove{nil, nil, nil}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
         lu.assertEquals(a._val.len, #t)
@@ -2029,7 +2029,7 @@ TestManipulation = {}
 
         -- Test for large-ish numbers of items.
         local a = Set(tables.num_e3_0)
-        a:delete(tables.num_e3_0)
+        a:remove(tables.num_e3_0)
         lu.assertTrue(simple_has_all(a, {}))
         lu.assertTrue(simple_has_only(a, {}))
         lu.assertEquals(a._val.len, 0)
@@ -2040,16 +2040,16 @@ TestManipulation = {}
         local a = Set{'sparse'}
         local t = {}
         t[9] = 'sparse'
-        a:delete(t)
+        a:remove(t)
         lu.assertTrue(simple_has_all(a, {}))
         lu.assertTrue(simple_has_only(a, {}))
         lu.assertEquals(a._val.len, 0)
         lu.assertItemsEquals(a:totable(), {})
         lu.assertEquals(#a, 0)
                 
-        -- Test whether this confuses `delete`.
+        -- Test whether this confuses `remove`.
         local a = Set{setmetatable({1}, CompTable)}
-        a:delete{setmetatable({1}, CompTable)}
+        a:remove{setmetatable({1}, CompTable)}
         lu.assertEquals(a._tab, {})
 
         -- Test for large-ish numbers of items.
@@ -2059,14 +2059,14 @@ TestManipulation = {}
         for i = 1, 99 do u[i] = setmetatable({i}, CompTable) end
         local exp = {setmetatable({100}, CompTable)}
         local a = Set(t)
-        a:delete(u)
+        a:remove(u)
         lu.assertItemsEquals(a._tab, exp)
         lu.assertItemsEquals(a:totable(), exp)
         lu.assertEquals(#a, #exp)
 
         -- Repeat for sets.
         local a = Set{Set{1}}
-        a:delete{Set{1}}
+        a:remove{Set{1}}
         lu.assertEquals(a._tab, {})
 
         -- Test for large-ish numbers of items.
@@ -2076,12 +2076,12 @@ TestManipulation = {}
         for i = 6, 100 do u[i] = Set{i} end
         local exp = {Set{1}, Set{2}, Set{3}, Set{4}, Set{5}}
         local a = Set(t)
-        a:delete(u)
+        a:remove(u)
         lu.assertItemsEquals(a._tab, exp)
         lu.assertEquals(#a, #exp)
         
         local a = Set(Set{1, 2, 3})
-        a:delete(Set{1, 2, 3})
+        a:remove(Set{1, 2, 3})
         lu.assertEquals(a._tab, {})
         lu.assertItemsEquals(a:totable(), {})
         lu.assertEquals(#a, 0)
@@ -2090,7 +2090,7 @@ TestManipulation = {}
         local exp = {Set{1}, 1, setmetatable({1}, CompTable), 'a'}
         local a = Set{Set{1}, false, 1, Set{2}, 'a',
             setmetatable({1}, CompTable), setmetatable({2}, CompTable)}
-        a:delete{setmetatable({2}, CompTable), false, Set{2}}
+        a:remove{setmetatable({2}, CompTable), false, Set{2}}
         lu.assertTrue(simple_has_all(a, {1, 'a'}))
         lu.assertTrue(simple_has_only(a, {1, 'a'}))
         lu.assertEquals(a._val.len, 2)
@@ -2182,7 +2182,7 @@ end
 function TestFlatten()
     local a = Set{1, Set{2, Set{5, Set{6}}, 3}, 4}
     local b = a:power()
-    lu.assertEquals(b:flatten(), Set{1, 2, 3, 4, 5, 6})
+    lu.assertEquals(b:flattened(), Set{1, 2, 3, 4, 5, 6})
 end
 
 
@@ -2194,8 +2194,8 @@ function TestNDisjoint()
     local b = Set{1, 2}
     local c = Set{2}
     local d = Set{3}
-    lu.assertFalse(properset.are_disjoint{a, b, c})
-    lu.assertTrue(properset.are_disjoint{a, c, d})
+    lu.assertFalse(properset.aredisjoint{a, b, c})
+    lu.assertTrue(properset.aredisjoint{a, c, d})
 end
 
 function TestNUnion()
