@@ -74,7 +74,7 @@ local MODFROZENERR = 'set is frozen.'
 --
 -- @return number If `obj` is a table, index at which it was stored;
 --  otherwise, `nil`.
-local function unchkdadd (set, obj, n)
+local function uncheckedadd (set, obj, n)
     local vt = set._val
     local vs = vt.mem
     local ts = set._tab
@@ -124,6 +124,15 @@ Set.mt.__index = Set
 --      {1, 2, 3}
 --      > Set{1, 2, 3}
 --      {1, 2, 3}
+--
+-- Note: `a:new`, where `a` is itself an 'instance' of `Set`, will create
+-- a new 'instance' of `Set`, *not* an 'instance' of `a`. That is,
+-- `b = a:new()`, `b = Set:new()`, and `b = Set()` are equivalent.
+--
+--      > a = Set()
+--      > b = a:new()
+--      > getmetatable(a) == getmetatable(b)
+--      true
 function Set:new (elems)
     self = self or Set
     local set = {_val = {len = 0, mem = {}}, _tab = {}, _meta = {}}
@@ -181,7 +190,7 @@ end
 --      > a
 --      {1, 2}
 function Set:add (elems)
-    local uad = unchkdadd
+    local uad = uncheckedadd
     local has = self.has
     local n
     -- This must be `pairs` to handle sparse arrays correctly.
@@ -351,9 +360,11 @@ end
 --      > a:power()
 --      {{0, 1}, {1}, {}, {0}}
 function Set:power ()
-    local uad = unchkdadd
+    local uad = uncheckedadd
     local cop = copy
-    local res = Set:new()
+    local res = self:new()
+    local f = res:isfrozen()
+    if f then res:unfreeze() end
     local rt = res._tab
     local n = 1
     rt[n] = Set:new()
@@ -365,6 +376,7 @@ function Set:power ()
             rt[n] = s
         end
     end
+    if f then res:freeze() end
     return res
 end
 
@@ -410,7 +422,9 @@ function Set:ofrank (n, flags, s)
     s = s or {}
     local isset = isset
     local rank = rank
-    local res = Set:new()
+    local res = self:new()
+    local f = res:isfrozen()
+    if f then res:unfreeze() end
     local add = res.add
     for v in self:mems() do
         if not s[v] then
@@ -421,6 +435,7 @@ function Set:ofrank (n, flags, s)
             end
         end
     end
+    if f then res:freeze() end
     return res
 end
 
@@ -456,13 +471,16 @@ function Set:atlevel (n)
         return copy(self)
     else
         local isset = isset
-        local res = Set:new()
+        local res = self:new()
+        local f = res:isfrozen()
+        if f then res:unfreeze() end
         local add = res.add
         for v in self:mems() do
             if isset(v) then
                 add(res, v:atlevel(n - 1))
             end
         end
+        if f then res:freeze() end
         return res
     end
 end
@@ -479,11 +497,14 @@ end
 --      > a:map(function(i) return i + 1 end)
 --      {2, 3, 4}
 function Set:map (func)
-    local add = Set.add
-    local res = Set:new()
+    local res = self:new()
+    local f = res:isfrozen()
+    if f then res:unfreeze() end
+    local add = res.add
     for v in self:mems() do
          add(res, {func(v)})
     end
+    if f then res:freeze() end
     return res
 end
 
@@ -499,13 +520,16 @@ end
 --      > a:filter(function(i) return i % 2 == 0 end)
 --      {2}
 function Set:filter (func)
-    local add = Set.add
-    local res = Set:new()
+    local res = self:new()
+    local f = res:isfrozen()
+    if f then res:unfreeze() end
+    local add = res.add
     for v in self:mems() do
          if func(v) then
              add(res, {v})
          end
     end
+    if f then res:freeze() end
     return res
 end
 
@@ -594,7 +618,9 @@ end
 --      {1, 2, 3, 4}
 function Set:flattened ()
     local isset = isset
-    local res = Set:new()
+    local res = self:new()
+    local f = res:isfrozen()
+    if f then res:unfreeze() end
     local add = res.add
     local s = {}
     local q = self:totable()
@@ -615,6 +641,7 @@ function Set:flattened ()
             add(res, {q[n]})
         end
     end
+    if f then res:freeze() end
     return res
 end
 
@@ -651,7 +678,7 @@ function Set:unfreeze ()
 end
 
 
---- Blocks accidential modifications of a set or its members.
+--- Blocks accidential modifications of the set.
 --
 -- @raise An error whenever it's invoked.
 function Set.mt:__newindex ()
@@ -950,7 +977,7 @@ end
 
 
 ---
--- Blocks accidential modifications of a set or its members.
+-- Blocks accidential modifications of the set.
 --
 -- @raise An error whenever it's invoked.
 function FrozenSet.add ()
@@ -959,7 +986,7 @@ end
 
 
 ---
--- Blocks accidential modifications of a set or its members.
+-- Blocks accidential modifications of the set.
 --
 -- @raise An error whenever it's invoked.
 function FrozenSet.remove ()
@@ -968,7 +995,7 @@ end
 
 
 ---
--- Blocks accidential modifications of a set or its members.
+-- Blocks accidential modifications of the set.
 --
 -- @raise An error whenever it's invoked.
 function FrozenSet.clear ()
@@ -1063,13 +1090,16 @@ function complement (a, b)
     assert(isset(a))
     assert(isset(b))
     local has = b.has
-    local uad = unchkdadd
-    local res = Set:new()
+    local uad = uncheckedadd
+    local res = a:new()
+    local f = res:isfrozen()
+    if f then res:unfreeze() end
     local n = 1
     for v in a:mems() do
         -- @todo Test if it's faster without passing n around.
         if not has(b, v) then n = uad(res, v, n) end
     end
+    if f then res:freeze() end
     return res
 end
 
@@ -1089,14 +1119,19 @@ end
 --      > properset.union{a, b, c}
 --      {1, 2, 3}
 function union (sets)
-    local ass = function (x) assert(isset(x)) end 
-    local add = Set.add
-    local res = Set:new()
+    if #sets < 1 then return nil end
+    local ass = function (x) assert(isset(x)) end
+    ass(sets[1])
+    local res = copy(sets[1])
+    local f = res:isfrozen()
+    if f then res:unfreeze() end
+    local add = res.add
     local n = #sets
-    for i = 1, n do
+    for i = 2, n do
         ass(sets[i])
         add(res, sets[i])
     end
+    if f then res:freeze() end
     return res
 end
 
@@ -1122,20 +1157,22 @@ function intersection (sets)
     if n == 1 then
         return sets[1]
     elseif n > 1 then
-        ass(sets[1], "arg " .. 1)
-        local add = Set.add
+        ass(sets[1])
+        local f = sets[1]:isfrozen()
         local res
         local acc = sets[1]
         for i = 2, n do
             ass(sets[i])
-            res = Set:new()
+            res = sets[1]:new()
+            if f then res:unfreeze() end
             for v in acc:mems() do
                 -- @todo Check if properset.add would work.
-                if sets[i]:has(v) then add(res, {v}) end
+                if sets[i]:has(v) then res:add{v} end
                 acc = res
             end
             if #acc == 0 then break end
         end
+        if f then res:freeze() end
         return res
     end
 end
@@ -1161,15 +1198,19 @@ end
 --      > properset.difference{a, b, c}
 --      {1, 4}
 function difference (sets)
+    if #sets < 1 then return nil end
     local ass = function (x) assert(isset(x)) end
     local com = complement
     local uni = union
     local int = intersection
-    local res = Set:new()
+    local res = sets[1]:new()
+    local f = res:isfrozen()
+    if f then res:unfreeze() end
     for i = 1, #sets do
         ass(sets[i])
         res = com(uni{res, sets[i]}, int{res, sets[i]})
     end
+    if f then res:freeze() end
     return res
 end
 
