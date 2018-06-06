@@ -11,7 +11,7 @@
 -- @author Odin Kroeger
 -- @copyright 2018 Odin Kroeger
 -- @license MIT
--- @release 0.3b-0
+-- @release 0.3b-1
 
 
 -- Boilerplate
