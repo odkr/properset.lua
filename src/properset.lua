@@ -114,6 +114,15 @@ Set.mt.__index = Set
 
 --- Creates a new instance of a prototype, typically `Set`.
 --
+-- `a:new`, where `a` is itself an 'instance' of `Set`, will create
+-- a new 'instance' of `Set`, *not* an 'instance' of `a`. That is,
+-- `b = a:new()`, `b = Set:new()`, and `b = Set()` are equivalent.
+--
+--      > a = Set()
+--      > b = a:new()
+--      > getmetatable(a) == getmetatable(b)
+--      true
+--
 -- @tparam[opt] table elems Members for the new set.
 --
 -- @return An instance of the given prototype for sets,
@@ -124,15 +133,6 @@ Set.mt.__index = Set
 --      {1, 2, 3}
 --      > Set{1, 2, 3}
 --      {1, 2, 3}
---
--- Note: `a:new`, where `a` is itself an 'instance' of `Set`, will create
--- a new 'instance' of `Set`, *not* an 'instance' of `a`. That is,
--- `b = a:new()`, `b = Set:new()`, and `b = Set()` are equivalent.
---
---      > a = Set()
---      > b = a:new()
---      > getmetatable(a) == getmetatable(b)
---      true
 function Set:new (elems)
     self = self or Set
     local set = {_val = {len = 0, mem = {}}, _tab = {}, _meta = {}}
