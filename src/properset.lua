@@ -22,7 +22,6 @@ local properset = {}
 local assert = assert
 local error = error
 local pcall = pcall
-local table = table
 local next = next
 local ipairs = ipairs
 local pairs = pairs
@@ -35,6 +34,7 @@ local type = type
 local rawequal = rawequal
 local rawset = rawset
 
+local table = table
 local upvalueid = debug.upvalueid
 local huge = math.huge
 
@@ -207,19 +207,19 @@ end
 --
 -- Don't remove members from a set while you're iterating over it.
 --
--- @tparam table mems A list of members to be removed.
+-- @tparam table members A list of members to be removed.
 --
 -- @usage
 --      > a = Set{1, 2, 3}
 --      > a:remove{2, 3}
 --      > a
 --      {1}
-function Set:remove (mems)
+function Set:remove (members)
     local rem = table.remove
     local vt = self._val
     local vs = vt.mem
     local ts = self._tab
-    for _, v in pairs(mems) do
+    for _, v in pairs(members) do
         if type(v) == 'table' then
             for i = #ts, 1, -1 do
                 if ts[i] == v then
@@ -249,6 +249,23 @@ function Set:clear ()
     self._val.mem = {}
     self._val.len = 0
     self._tab = {}
+end
+
+
+--- Removes an arbitrary members from the set and returns it.
+--
+-- Don't remove members from a set while you're iterating over it.
+-- If you want to iterate over the whole set, use `members` with the
+-- flag `properset.POPOFF` instead.
+--
+-- @usage
+--      > a = Set{1, 2}
+--      > a:pop()
+--      1
+--      > a
+--      {2}
+function Set:pop ()
+    return self:members(POPOFF)()
 end
 
 
@@ -317,22 +334,35 @@ end
 --
 -- @usage
 --      > a = Set{1, 2, 3}
---      > for v in a:mems() do print(v) end
+--      > for v in a:members() do print(v) end
 --      1
 --      2
 --      3
-function Set:mems ()
-    local vs = self._val.mem
+function Set:members (flags)
+    flags = flags or 0
+    local rem = table.remove
+    local vt = self._val
+    local vs = vt.mem
     local ts = self._tab
+    local p = flags & POPOFF == POPOFF
     local k = nil
     local i = 0
     return function ()
         if k ~= nil or i == 0 then
             k, _ = next(vs, k)
-            if k ~= nil then return k end
+            if k ~= nil then
+                if p then
+                    vs[k] = nil
+                    vt.len = vt.len - 1
+                end
+                return k
+            end
         end
         i = i + 1
-        return ts[i]
+        if ts[i] ~= nil then
+            if p then rem(ts, i) end
+            return ts[i]
+        end
     end
 end
 
@@ -368,7 +398,7 @@ function Set:power ()
     local rt = res._tab
     local n = 1
     rt[n] = Set:new()
-    for v in self:mems() do
+    for v in self:members() do
         for i = 1, n do
             local s = cop(rt[i])
             uad(s, v)
@@ -426,7 +456,7 @@ function Set:ofrank (n, flags, s)
     local f = res:isfrozen()
     if f then res:unfreeze() end
     local add = res.add
-    for v in self:mems() do
+    for v in self:members() do
         if not s[v] then
             s[v] = true
             if rank(v) == n then add(res, {v}) end
@@ -475,7 +505,7 @@ function Set:atlevel (n)
         local f = res:isfrozen()
         if f then res:unfreeze() end
         local add = res.add
-        for v in self:mems() do
+        for v in self:members() do
             if isset(v) then
                 add(res, v:atlevel(n - 1))
             end
@@ -501,7 +531,7 @@ function Set:map (func)
     local f = res:isfrozen()
     if f then res:unfreeze() end
     local add = res.add
-    for v in self:mems() do
+    for v in self:members() do
          add(res, {func(v)})
     end
     if f then res:freeze() end
@@ -524,7 +554,7 @@ function Set:filter (func)
     local f = res:isfrozen()
     if f then res:unfreeze() end
     local add = res.add
-    for v in self:mems() do
+    for v in self:members() do
          if func(v) then
              add(res, {v})
          end
@@ -553,7 +583,7 @@ function Set:totable (flags, s)
     local res = {}
     local n = 0
     s[self] = res
-    for i in self:mems() do
+    for i in self:members() do
         n = n + 1
         if flags & RECURSIVE == RECURSIVE and isset(i) then
             if s[i] then res[n] = s[i]
@@ -771,7 +801,7 @@ Set.mt.__pairs = Set.mt.__ipairs
 function Set.mt:__le (other, s)
     assert(isset(other))
     local has = other.has
-    for i in self:mems() do
+    for i in self:members() do
         if not has(other, i, s) then return false end
     end
     return true
@@ -911,7 +941,7 @@ function Set.mt:__tostring (s)
     local s = s or {}
     local t = {}
     local n = 0
-    for v in self:mems() do
+    for v in self:members() do
         n = n + 1
         if isset(v) then
             if not s[v] then
@@ -1095,7 +1125,7 @@ function complement (a, b)
     local f = res:isfrozen()
     if f then res:unfreeze() end
     local n = 1
-    for v in a:mems() do
+    for v in a:members() do
         -- @todo Test if it's faster without passing n around.
         if not has(b, v) then n = uad(res, v, n) end
     end
@@ -1165,7 +1195,7 @@ function intersection (sets)
             ass(sets[i])
             res = sets[1]:new()
             if f then res:unfreeze() end
-            for v in acc:mems() do
+            for v in acc:members() do
                 -- @todo Check if properset.add would work.
                 if sets[i]:has(v) then res:add{v} end
                 acc = res
@@ -1287,7 +1317,7 @@ function rank (obj, s)
     s = s or {}
     local rank = rank
     local res = 1
-    for v in obj:mems() do
+    for v in obj:members() do
         if isset(v) then
             if s[v] then return huge end
             s[v] = true
@@ -1342,6 +1372,19 @@ end
 emptyset = FrozenSet:new()
 
 
+--- If this flag is passed to `Set:id`, the set's ID is returned as a number.
+--
+-- Only used by `Set:id`.
+ASNUM = 1
+
+
+--- If this flag is passed to `Set:members`, 
+-- the members returned are removed from the set.
+--
+-- Only used by `Set:members`.
+POPOFF = 1
+
+
 --- If this flag is passed to a method that understands it,
 -- sets are processed recursively.
 --
@@ -1352,11 +1395,6 @@ emptyset = FrozenSet:new()
 --  * `Set:unpack`
 --  * `Set:sorted`
 RECURSIVE = 1
-
---- If this flag is passed to `Set:id`, the set's ID is returned as a number.
---
--- Only used by `Set:id`.
-ASNUM = 1
 
 
 -- Backplate
