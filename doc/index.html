@@ -87,12 +87,16 @@
 	<td class="summary">Adds elements to a set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:remove">Set:remove (mems)</a></td>
+	<td class="name" nowrap><a href="#Set:remove">Set:remove (members)</a></td>
 	<td class="summary">Deletes members from a set.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set:clear">Set:clear ()</a></td>
 	<td class="summary">Removes all members from the set.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Set:pop">Set:pop ()</a></td>
+	<td class="summary">Removes an arbitrary members from the set and returns it.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Set:isempty">Set:isempty ()</a></td>
@@ -107,7 +111,7 @@
 	<td class="summary">Tests whether an object is a member of the set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:mems">Set:mems ()</a></td>
+	<td class="name" nowrap><a href="#Set:members">Set:members ([flags=0])</a></td>
 	<td class="summary">Iterates over all members of the set.</td>
 	</tr>
 	<tr>
@@ -123,11 +127,11 @@
 	<td class="summary">All members at level <em>n</em>.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:map">Set:map (func)</a></td>
+	<td class="name" nowrap><a href="#Set:map">Set:map (func[, flags=0])</a></td>
 	<td class="summary">Maps a function of all values of the set onto another set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:filter">Set:filter (func)</a></td>
+	<td class="name" nowrap><a href="#Set:filter">Set:filter (func[, flags=0])</a></td>
 	<td class="summary">Filters members of a set.</td>
 	</tr>
 	<tr>
@@ -139,7 +143,7 @@
 	<td class="summary">Unpacks the members of the set.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Set:sorted">Set:sorted ([callable[, flags=0]])</a></td>
+	<td class="name" nowrap><a href="#Set:sorted">Set:sorted ([func[, flags=0]])</a></td>
 	<td class="summary">Returns the members of the set sorted.</td>
 	</tr>
 	<tr>
@@ -279,13 +283,18 @@
 	<td class="summary">The empty set.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#ASNUM">ASNUM</a></td>
+	<td class="summary">If this flag is passed to <a href="index.html#Set:id">Set:id</a>, the set&rsquo;s ID is returned as a number.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#POPOFF">POPOFF</a></td>
+	<td class="summary">If this flag is passed to <a href="index.html#Set:members">Set:members</a>,
+ the members returned are removed from the set.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#RECURSIVE">RECURSIVE</a></td>
 	<td class="summary">If this flag is passed to a method that understands it,
  sets are processed recursively.</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#ASNUM">ASNUM</a></td>
-	<td class="summary">If this flag is passed to <a href="index.html#Set:id">Set:id</a>, the set&rsquo;s ID is returned as a number.</td>
 	</tr>
 </table>
 
@@ -297,7 +306,7 @@
 
           <div class="section-description">
           Sets contain every item at most once.
- They can only be modified using <a href="index.html#FrozenSet.add">add</a> and <a href="index.html#Set:remove">remove</a>.
+ They can only be modified using <a href="index.html#Set:add">add</a> and <a href="index.html#Set:remove">remove</a>.
  And set members are (mostly) immutable.</p>
 
 <p> You should <em>not</em> attempt to modify set members.
@@ -310,7 +319,18 @@
     <strong>Set:new ([elems])</strong>
     </dt>
     <dd>
-    Creates a new instance of a prototype, typically <a href="index.html#Set">Set</a>.
+    <p>Creates a new instance of a prototype, typically <a href="index.html#Set">Set</a>. </p>
+
+<p> <code>a:new</code>, where <code>a</code> is itself an &lsquo;instance&rsquo; of <a href="index.html#Set">Set</a>, will create
+ a new &lsquo;instance&rsquo; of <a href="index.html#Set">Set</a>, <em>not</em> an &lsquo;instance&rsquo; of <code>a</code>. That is,
+ <code>b = a:new()</code>, <code>b = Set:new()</code>, and <code>b = Set()</code> are equivalent.</p>
+
+<pre><code>  &gt; a = Set()
+  &gt; b = a:new()
+  &gt; getmetatable(a) == getmetatable(b)
+  true
+</code></pre>
+
 
 
     <h3>Parameters:</h3>
@@ -336,16 +356,7 @@
         <pre class="example">&gt; Set:new{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 &gt; Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-
- <span class="backtick"><code>a:new</code></span>, where <span class="backtick"><code>a</code></span> is itself an <span class="string">'instance'</span> of <span class="backtick"><a href="index.html#Set">Set</a></span>, will create
- <span class="string">'instance'</span> of <span class="backtick"><a href="index.html#Set">Set</a></span>, *<span class="keyword">not</span>* an <span class="string">'instance'</span> of <span class="backtick"><code>a</code></span>. That is,
-a:new()<span class="backtick"><code>, </code></span>b = Set:new()<span class="backtick"><code>, and </code></span>b = Set()` are equivalent.
-
-&gt; a = Set()
-&gt; b = a:new()
-&gt; <span class="global">getmetatable</span>(a) == <span class="global">getmetatable</span>(b)
-<span class="keyword">true</span></pre>
+{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}</pre>
     </ul>
 
 </dd>
@@ -422,7 +433,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 </dd>
     <dt>
     <a name = "Set:remove"></a>
-    <strong>Set:remove (mems)</strong>
+    <strong>Set:remove (members)</strong>
     </dt>
     <dd>
     Deletes members from a set. </p>
@@ -432,7 +443,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">mems</span>
+        <li><span class="parameter">members</span>
             <span class="types"><a class="type" href="https://www.lua.org/manual/5.3/manual.html#6.6">table</a></span>
          A list of members to be removed.
         </li>
@@ -470,6 +481,32 @@ Set: <span class="number">0x7f8a555d4df0</span>
 &gt; a:clear()
 &gt; a
 {}</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Set:pop"></a>
+    <strong>Set:pop ()</strong>
+    </dt>
+    <dd>
+    Removes an arbitrary members from the set and returns it. </p>
+
+<p> Don&rsquo;t remove members from a set while you're iterating over it.
+ If you want to iterate over the whole set, use <a href="index.html#Set:members">members</a> with the
+ flag <a href="index.html#POPOFF">properset.POPOFF</a> instead.
+
+
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>}
+&gt; a:pop()
+<span class="number">1</span>
+&gt; a
+{<span class="number">2</span>}</pre>
     </ul>
 
 </dd>
@@ -563,13 +600,22 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
 </dd>
     <dt>
-    <a name = "Set:mems"></a>
-    <strong>Set:mems ()</strong>
+    <a name = "Set:members"></a>
+    <strong>Set:members ([flags=0])</strong>
     </dt>
     <dd>
     Iterates over all members of the set.
 
 
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">flags</span>
+            <span class="types"><span class="type">number</span></span>
+         If <a href="index.html#POPOFF">POPOFF</a> is set, removes from the set
+  each member returned.
+         (<em>default</em> 0)
+        </li>
+    </ul>
 
     <h3>Returns:</h3>
     <ol>
@@ -583,7 +629,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <h3>Usage:</h3>
     <ul>
         <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
-&gt; <span class="keyword">for</span> v <span class="keyword">in</span> a:mems() <span class="keyword">do</span> <span class="global">print</span>(v) <span class="keyword">end</span>
+&gt; <span class="keyword">for</span> v <span class="keyword">in</span> a:members() <span class="keyword">do</span> <span class="global">print</span>(v) <span class="keyword">end</span>
 <span class="number">1</span>
 <span class="number">2</span>
 <span class="number">3</span></pre>
@@ -745,7 +791,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 </dd>
     <dt>
     <a name = "Set:map"></a>
-    <strong>Set:map (func)</strong>
+    <strong>Set:map (func[, flags=0])</strong>
     </dt>
     <dd>
     Maps a function of all values of the set onto another set.
@@ -756,6 +802,12 @@ Set: <span class="number">0x7f8a555d4df0</span>
         <li><span class="parameter">func</span>
             <span class="types"><span class="type">function</span></span>
          A function to be applied to each member.
+        </li>
+        <li><span class="parameter">flags</span>
+            <span class="types"><span class="type">number</span></span>
+         If <a href="index.html#RECURSIVE">RECURSIVE</a> is set, applies <code>func</code> to members
+   of the set that are sets, members of those sets that are sets, &hellip;, too.
+         (<em>default</em> 0)
         </li>
     </ul>
 
@@ -772,13 +824,16 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <ul>
         <pre class="example">&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>}
 &gt; a:map(<span class="keyword">function</span>(i) <span class="keyword">return</span> i + <span class="number">1</span> <span class="keyword">end</span>)
-{<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}</pre>
+{<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>}
+&gt; a = Set{<span class="number">1</span>, <span class="number">2</span>, Set{<span class="number">3</span>, <span class="number">4</span>}}
+&gt; a:map(<span class="keyword">function</span> (i) <span class="keyword">return</span> i + <span class="number">1</span> <span class="keyword">end</span>, properset.RECURSIVE)
+{<span class="number">2</span>, <span class="number">3</span>, {<span class="number">4</span>, <span class="number">5</span>}}</pre>
     </ul>
 
 </dd>
     <dt>
     <a name = "Set:filter"></a>
-    <strong>Set:filter (func)</strong>
+    <strong>Set:filter (func[, flags=0])</strong>
     </dt>
     <dd>
     Filters members of a set.
@@ -788,7 +843,13 @@ Set: <span class="number">0x7f8a555d4df0</span>
     <ul>
         <li><span class="parameter">func</span>
             <span class="types"><span class="type">function</span></span>
-         A function that defines which members will be selected.
+         A function that defines which members to return.
+        </li>
+        <li><span class="parameter">flags</span>
+            <span class="types"><span class="type">number</span></span>
+         If <a href="index.html#RECURSIVE">RECURSIVE</a> is set, tests members of the
+  set that are sets, members of those sets that are sets, &hellip;, too.
+         (<em>default</em> 0)
         </li>
     </ul>
 
@@ -882,7 +943,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 </dd>
     <dt>
     <a name = "Set:sorted"></a>
-    <strong>Set:sorted ([callable[, flags=0]])</strong>
+    <strong>Set:sorted ([func[, flags=0]])</strong>
     </dt>
     <dd>
     Returns the members of the set sorted. </p>
@@ -892,7 +953,7 @@ Set: <span class="number">0x7f8a555d4df0</span>
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">callable</span>
+        <li><span class="parameter">func</span>
             <span class="types"><span class="type">function</span></span>
          A sorting function.
          (<em>optional</em>)
@@ -1405,7 +1466,7 @@ set is frozen.
     <h2 class="section-header has-description"><a name="Class_FrozenSet"></a>Class FrozenSet </h2>
 
           <div class="section-description">
-          Frozen Sets are just sets whose <a href="index.html#FrozenSet.add">add</a>, <a href="index.html#Set:remove">remove</a>, and <a href="index.html#Set:clear">clear</a> methods raise
+          Frozen Sets are just sets whose <a href="index.html#Set:add">add</a>, <a href="index.html#Set:remove">remove</a>, and <a href="index.html#FrozenSet.clear">clear</a> methods raise
  an error.  They can be populated when they are created but cannot be changed
  thereafter (through their interface at any rate). The prototype of
  <a href="index.html#FrozenSet">FrozenSet</a> is <a href="index.html#Set">Set</a>, so, otherwise, they behave in the same way as Sets.
@@ -1434,7 +1495,7 @@ set is frozen.
     <ol>
 
          An instance of the given <code>prototype</code> for sets,
-  populated with <code>members</code>, if any were given.
+  populated with <a href="index.html#Set:members">members</a>, if any were given.
     </ol>
 
 
@@ -1942,32 +2003,6 @@ set is frozen.
 
 </dd>
     <dt>
-    <a name = "RECURSIVE"></a>
-    <strong>RECURSIVE</strong>
-    </dt>
-    <dd>
-    <p>If this flag is passed to a method that understands it,
- sets are processed recursively. </p>
-
-<p> Currently used by:</p>
-
-<ul>
-<li><a href="index.html#Set:ofrank">Set:ofrank</a></li>
-<li><a href="index.html#Set:totable">Set:totable</a></li>
-<li><a href="index.html#Set:unpack">Set:unpack</a></li>
-<li><a href="index.html#Set:sorted">Set:sorted</a></li>
-</ul>
-
-
-
-
-
-
-
-
-
-</dd>
-    <dt>
     <a name = "ASNUM"></a>
     <strong>ASNUM</strong>
     </dt>
@@ -1983,6 +2018,51 @@ set is frozen.
 
 
 </dd>
+    <dt>
+    <a name = "POPOFF"></a>
+    <strong>POPOFF</strong>
+    </dt>
+    <dd>
+    If this flag is passed to <a href="index.html#Set:members">Set:members</a>,
+ the members returned are removed from the set. </p>
+
+<p> Only used by <a href="index.html#Set:members">Set:members</a>.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "RECURSIVE"></a>
+    <strong>RECURSIVE</strong>
+    </dt>
+    <dd>
+    <p>If this flag is passed to a method that understands it,
+ sets are processed recursively. </p>
+
+<p> Currently used by:</p>
+
+<ul>
+<li><a href="index.html#Set:ofrank">Set:ofrank</a></li>
+<li><a href="index.html#Set:map">Set:map</a></li>
+<li><a href="index.html#Set:filter">Set:filter</a></li>
+<li><a href="index.html#Set:totable">Set:totable</a></li>
+<li><a href="index.html#Set:unpack">Set:unpack</a></li>
+<li><a href="index.html#Set:sorted">Set:sorted</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+</dd>
 </dl>
 
 
@@ -1990,7 +2070,7 @@ set is frozen.
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-06-05 23:56:42 </i>
+<i style="float:right;">Last updated 2018-06-06 11:58:10 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
