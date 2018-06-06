@@ -555,15 +555,22 @@ end
 --      > a = Set{1, 2, 3}
 --      > a:filter(function(i) return i % 2 == 0 end)
 --      {2}
-function Set:filter (func)
+function Set:filter (func, flags, s)
+    flags = flags or 0
+    s = s or {}
+    local r = flags & RECURSIVE == RECURSIVE
     local res = self:new()
     local f = res:isfrozen()
     if f then res:unfreeze() end
     local add = res.add
     for v in self:members() do
-         if func(v) then
-             add(res, {v})
-         end
+        if r and isset(v) then
+            if s[v] then return s[v] end
+            s[v] = res
+            add(res, {v:filter(func, flags, s)})
+        else
+            if func(v) then add(res, {v}) end
+        end
     end
     if f then res:freeze() end
     return res
