@@ -50,7 +50,10 @@ local _ENV = properset
 -- =================
 
 -- Error message shown on attempts to change a `Set`.
-local SETMODERR = "sets can only be modified by 'add', 'remove', 'pop', and 'clear'."
+local SETMODERR = "sets can be modified by 'add', 'remove', 'pop', and 'clear' only."
+
+-- Format for error messages shown if too few args are given.
+local TOOFEWARGSERR = "%s: requires at least %d argument(s)."
 
 -- Format for error shown if a value isn't a set.
 local NOTASETERR = 'expected a Set, got a %s.'
@@ -1133,7 +1136,6 @@ end
 --      > properset.complement(a, b)
 --      {1}
 function complement (a, b)
-    -- @todo make n-ary; perhaps as in Python?
     assert(isset(a))
     assert(isset(b))
     local has = b.has
@@ -1166,7 +1168,7 @@ end
 --      > properset.union{a, b, c}
 --      {1, 2, 3}
 function union (sets)
-    if #sets < 1 then return nil end
+    if #sets < 1 then error(string.format(TOOFEWARGSERR, 'union', 1), 2) end
     local ass = function (x) assert(isset(x)) end
     ass(sets[1])
     local res = copy(sets[1])
@@ -1199,6 +1201,7 @@ end
 --      > properset.intersection{a, b, d}
 --      {1}
 function intersection (sets)
+    if #sets < 1 then error(string.format(TOOFEWARGSERR, 'union', 1), 2) end
     local ass = function (x) assert(isset(x)) end
     local n = #sets
     if n == 1 then
@@ -1245,7 +1248,7 @@ end
 --      > properset.difference{a, b, c}
 --      {1, 4}
 function difference (sets)
-    if #sets < 1 then return nil end
+    if #sets < 1 then error(string.format(TOOFEWARGSERR, 'union', 1), 2) end
     local ass = function (x) assert(isset(x)) end
     local com = complement
     local uni = union
