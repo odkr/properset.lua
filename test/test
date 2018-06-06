@@ -109,7 +109,7 @@ end
 -- @treturn boolean Whether the set has all given members.
 function simple_has_all (s, ms)
     for i = 1, #ms do
-        if s._val.mem[ms[i]] == nil then return false end
+        if s._val[ms[i]] == nil then return false end
     end
     return true
 end
@@ -122,7 +122,7 @@ end
 --
 -- @treturn boolean Whether the set has only the given members.
 function simple_has_only (s, ms)
-    for k in pairs(s._val.mem) do
+    for k in pairs(s._val) do
         local found = false
         for i = 1, #ms do
             if ms[i] == k then
@@ -228,7 +228,7 @@ TestBootstrap = {}
         -- I haven't yet tested behaviours,
         -- so I can't assume they're reliable.
         -- and start by testing the implementation.
-        lu.assertItemsEquals(a._val, {mem = {}, len = 0})
+        lu.assertItemsEquals(a._val, {})
         lu.assertItemsEquals(a._tab, {})
         lu.assertEquals(getmetatable(a), Set.mt)
 
@@ -245,7 +245,7 @@ TestBootstrap = {}
         -- I haven't yet tested behaviours,
         -- so I can't assume they're reliable.
         -- and start by testing the implementation.
-        lu.assertItemsEquals(a._val, {mem = {}, len = 0})
+        lu.assertItemsEquals(a._val, {})
         lu.assertItemsEquals(a._tab, {})
         lu.assertEquals(getmetatable(a), Set.mt)
 
@@ -293,7 +293,6 @@ TestBootstrap = {}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, #tables.num_e1_1)
 
         -- Test whether items are added only once
         -- Still only testing the implementation.
@@ -301,7 +300,6 @@ TestBootstrap = {}
         local t = {1, 2, 3, 'b', true, false}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 6)
 
         -- Let's test behaviour.
         lu.assertItemsEquals(a:totable(), t)
@@ -315,7 +313,6 @@ TestBootstrap = {}
         a:add{nil, nil, nil}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 0)
         lu.assertItemsEquals(a:totable(), t)
         lu.assertEquals(a, Set:new{})
         lu.assertEquals(#a, 0)
@@ -326,7 +323,6 @@ TestBootstrap = {}
         a:add(t)
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 1000)
 
         -- Let's test behaviour.
         lu.assertItemsEquals(a:totable(), t)
@@ -338,7 +334,6 @@ TestBootstrap = {}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
         lu.assertItemsEquals(a:totable(), t)
-        lu.assertEquals(a._val.len, 1000)
         lu.assertEquals(#a, 1000)
 
         -- Let's see if sparse arrays are handled correctly.
@@ -764,7 +759,6 @@ TestBootstrap = {}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, #tables.num_e1_1)
 
         -- And some behaviour.
         lu.assertEquals(#a, #tables.num_e1_1)
@@ -780,7 +774,6 @@ TestBootstrap = {}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 6)
 
         lu.assertEquals(#a, 6)
         lu.assertEquals(a, b)
@@ -791,7 +784,6 @@ TestBootstrap = {}
         local t = {}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 0)
         lu.assertItemsEquals(a:totable(), t)
         lu.assertEquals(a, Set:new{})
         lu.assertEquals(#a, 0)
@@ -801,7 +793,6 @@ TestBootstrap = {}
         local a = Set:new(t)
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 1000)
 
         -- Let's test behaviour.
         lu.assertItemsEquals(a:totable(), t)
@@ -829,7 +820,6 @@ TestBootstrap = {}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 3)
 
         -- And some behaviour.
         lu.assertEquals(#a, 3)
@@ -845,7 +835,6 @@ TestBootstrap = {}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 6)
 
         lu.assertEquals(#a, 6)
         lu.assertEquals(a, b)
@@ -856,7 +845,6 @@ TestBootstrap = {}
         local t = {}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 0)
         lu.assertItemsEquals(a:totable(), t)
         lu.assertEquals(a, Set:new{})
         lu.assertEquals(#a, 0)
@@ -866,7 +854,6 @@ TestBootstrap = {}
         local a = Set(t)
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, 1000)
 
         -- Let's test behaviour.
         lu.assertItemsEquals(a:totable(), t)
@@ -1420,7 +1407,6 @@ TestBootstrap = {}
         -- Test the implementation.
         lu.assertTrue(simple_has_all(a, {false, 1, 'a'}))
         lu.assertTrue(simple_has_only(a, {false, 1, 'a'}))
-        lu.assertEquals(a._val.len, 3)
         lu.assertEquals(a._tab, {Set:new{1}, Set:new{2}, {1}, {2}})
 
         -- Let's test behaviour.
@@ -1537,7 +1523,6 @@ TestBootstrap = {}
         -- Test the implementation.
         lu.assertTrue(simple_has_all(a, {false, 1, 'a'}))
         lu.assertTrue(simple_has_only(a, {false, 1, 'a'}))
-        lu.assertEquals(a._val.len, 3)
         lu.assertEquals(a._tab, {Set:new{1}, Set:new{2}, {1}, {2}})
 
         -- Let's test behaviour.
@@ -1568,7 +1553,6 @@ TestBootstrap = {}
         -- Test the implementation.
         lu.assertTrue(simple_has_all(a, {false, 1, 'a'}))
         lu.assertTrue(simple_has_only(a, {false, 1, 'a'}))
-        lu.assertEquals(a._val.len, 3)
         lu.assertEquals(a._tab, {Set{1}, Set{2}, {1}, {2}})
 
         -- Let's test behaviour.
@@ -1991,7 +1975,6 @@ TestManipulation = {}
 
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, #t)
 
         -- Let's test behaviour.
         lu.assertItemsEquals(a:totable(), t)
@@ -2003,7 +1986,6 @@ TestManipulation = {}
         a:remove{nil}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, #t)
         lu.assertItemsEquals(a:totable(), t)
         lu.assertEquals(a, Set{1, 2})
         lu.assertEquals(#a, 2)    
@@ -2011,7 +1993,6 @@ TestManipulation = {}
         a:remove{nil, nil, nil}
         lu.assertTrue(simple_has_all(a, t))
         lu.assertTrue(simple_has_only(a, t))
-        lu.assertEquals(a._val.len, #t)
         lu.assertItemsEquals(a:totable(), t)
         lu.assertEquals(a, Set{1, 2})
         lu.assertEquals(#a, 2)    
@@ -2021,7 +2002,6 @@ TestManipulation = {}
         a:remove(tables.num_e3_0)
         lu.assertTrue(simple_has_all(a, {}))
         lu.assertTrue(simple_has_only(a, {}))
-        lu.assertEquals(a._val.len, 0)
         lu.assertItemsEquals(a:totable(), {})
         lu.assertEquals(#a, 0)
 
@@ -2032,7 +2012,6 @@ TestManipulation = {}
         a:remove(t)
         lu.assertTrue(simple_has_all(a, {}))
         lu.assertTrue(simple_has_only(a, {}))
-        lu.assertEquals(a._val.len, 0)
         lu.assertItemsEquals(a:totable(), {})
         lu.assertEquals(#a, 0)
                 
@@ -2082,7 +2061,6 @@ TestManipulation = {}
         a:remove{setmetatable({2}, CompTable), false, Set{2}}
         lu.assertTrue(simple_has_all(a, {1, 'a'}))
         lu.assertTrue(simple_has_only(a, {1, 'a'}))
-        lu.assertEquals(a._val.len, 2)
         lu.assertEquals(a._tab, {Set{1}, {1}})
         lu.assertEquals(#a, #exp)
         lu.assertItemsEquals(a:totable(false), exp)
