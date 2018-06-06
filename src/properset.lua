@@ -50,7 +50,7 @@ local _ENV = properset
 -- =================
 
 -- Error message shown on attempts to change a `Set`.
-local SETMODERR = "sets can only be modified by 'add', 'remove' and 'clear'."
+local SETMODERR = "sets can only be modified by 'add', 'remove', 'pop', and 'clear'."
 
 -- Format for error shown if a value isn't a set.
 local NOTASETERR = 'expected a Set, got a %s.'
@@ -618,7 +618,7 @@ end
 --
 -- Keep in mind, sets may be multidimensional.
 --
--- @tparam[opt] function callable A sorting function.
+-- @tparam[opt] function func A sorting function.
 -- @tparam[opt=0] number flags If `RECURSIVE` is set, then sorts not
 --  only this set, but all sets that are members of this set, members of
 --  those sets, and so forth.
@@ -630,9 +630,9 @@ end
 --      > r = a:sorted()
 --      > table.concat(r, ', ')
 --      1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-function Set:sorted (callable, flags)
+function Set:sorted (func, flags)
     local t = self:totable(flags)
-    table.sort(t, callable)
+    table.sort(t, func)
     return t
 end
 
