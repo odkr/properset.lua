@@ -323,6 +323,9 @@ end
 
 --- Iterates over all members of the set.
 --
+-- @tparam[opt=0] number flags If `POPOFF` is set, removes from the set
+--  each member returned.
+--
 -- @treturn function A function that returns a member of the set.
 --
 -- @usage
