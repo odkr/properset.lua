@@ -511,6 +511,8 @@ end
 --- Maps a function of all values of the set onto another set.
 --
 -- @tparam function func A function to be applied to each member.
+-- @tparam[opt=0] number flags If `RECURSIVE` is set, applies `func` to members
+--   of the set that are sets, members of those sets that are sets, ..., too. 
 --
 -- @treturn Set The results of applying `func` to the members of the set.
 --
@@ -518,13 +520,22 @@ end
 --      > a = Set{1, 2, 3}
 --      > a:map(function(i) return i + 1 end)
 --      {2, 3, 4}
-function Set:map (func)
+--      > a = Set{1, 2, Set{3, 4}}
+--      > a:map(function (i) return i + 1 end, properset.RECURSIVE)
+--      {2, 3, {4, 5}}
+function Set:map (func, flags)
+    flags = flags or 0
+    local r = flags & RECURSIVE == RECURSIVE
     local res = self:new()
     local f = res:isfrozen()
     if f then res:unfreeze() end
     local add = res.add
     for v in self:members() do
-         add(res, {func(v)})
+        if r and isset(v) then
+            add(res, {v:map(func, flags)})
+        else
+            add(res, {func(v)})
+        end
     end
     if f then res:freeze() end
     return res
@@ -1385,6 +1396,7 @@ POPOFF = 1
 -- Currently used by:
 --
 --  * `Set:ofrank`
+--  * `Set:map`
 --  * `Set:totable`
 --  * `Set:unpack`
 --  * `Set:sorted`
