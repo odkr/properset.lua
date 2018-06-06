@@ -75,8 +75,7 @@ local MODFROZENERR = 'set is frozen.'
 -- @return number If `obj` is a table, index at which it was stored;
 --  otherwise, `nil`.
 local function uncheckedadd (set, obj, n)
-    local vt = set._val
-    local vs = vt.mem
+    local vs = set._val
     local ts = set._tab
     n = n or #ts
     if type(obj) == 'table' then
@@ -85,7 +84,6 @@ local function uncheckedadd (set, obj, n)
         return n
     else
         vs[obj] = true
-        vt.len = vt.len + 1
     end
 end
 
@@ -135,7 +133,7 @@ Set.mt.__index = Set
 --      {1, 2, 3}
 function Set:new (elems)
     self = self or Set
-    local set = {_val = {len = 0, mem = {}}, _tab = {}, _meta = {}}
+    local set = {_val = {}, _tab = {}, _meta = {}}
     setmetatable(set, self.mt)
     if elems then set:add(elems) end
     return set
@@ -216,8 +214,7 @@ end
 --      {1}
 function Set:remove (members)
     local rem = table.remove
-    local vt = self._val
-    local vs = vt.mem
+    local vs = self._val
     local ts = self._tab
     for _, v in pairs(members) do
         if type(v) == 'table' then
@@ -230,7 +227,6 @@ function Set:remove (members)
             end
         else
             vs[v] = nil
-            vt.len = vt.len - 1
         end
     end
 end
@@ -246,8 +242,7 @@ end
 --      > a
 --      {}
 function Set:clear ()
-    self._val.mem = {}
-    self._val.len = 0
+    self._val = {}
     self._tab = {}
 end
 
@@ -323,7 +318,7 @@ function Set:has (obj, s)
         end
         return false
     else
-        return self._val.mem[obj] or false
+        return self._val[obj] or false
     end
 end
 
@@ -341,8 +336,7 @@ end
 function Set:members (flags)
     flags = flags or 0
     local rem = table.remove
-    local vt = self._val
-    local vs = vt.mem
+    local vs = self._val
     local ts = self._tab
     local p = flags & POPOFF == POPOFF
     local k = nil
@@ -351,10 +345,7 @@ function Set:members (flags)
         if k ~= nil or i == 0 then
             k, _ = next(vs, k)
             if k ~= nil then
-                if p then
-                    vs[k] = nil
-                    vt.len = vt.len - 1
-                end
+                if p then vs[k] = nil end
                 return k
             end
         end
@@ -737,7 +728,9 @@ end
 --      3
 function Set.mt:__len ()
     -- @todo maybe counting as needed is faster than keeping track.
-    return self._val.len + #self._tab
+    local n = 0
+    for _ in pairs(self._val) do n = n + 1 end
+    return n + #self._tab
 end
 
 
@@ -750,7 +743,7 @@ end
 --      2       b
 --      3       c
 function Set.mt:__ipairs ()
-    local vs = self._val.mem
+    local vs = self._val
     local ts = self._tab
     local n = #ts
     local k = nil
