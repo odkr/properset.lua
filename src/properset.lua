@@ -523,8 +523,9 @@ end
 --      > a = Set{1, 2, Set{3, 4}}
 --      > a:map(function (i) return i + 1 end, properset.RECURSIVE)
 --      {2, 3, {4, 5}}
-function Set:map (func, flags)
+function Set:map (func, flags, s)
     flags = flags or 0
+    s = s or {}
     local r = flags & RECURSIVE == RECURSIVE
     local res = self:new()
     local f = res:isfrozen()
@@ -532,7 +533,9 @@ function Set:map (func, flags)
     local add = res.add
     for v in self:members() do
         if r and isset(v) then
-            add(res, {v:map(func, flags)})
+            if s[v] then return s[v] end
+            s[v] = res
+            add(res, {v:map(func, flags, s)})
         else
             add(res, {func(v)})
         end
@@ -586,14 +589,14 @@ function Set:totable (flags, s)
     local res = {}
     local n = 0
     s[self] = res
-    for i in self:members() do
+    for v in self:members() do
         n = n + 1
-        if flags & RECURSIVE == RECURSIVE and isset(i) then
-            if s[i] then res[n] = s[i]
-                    else res[n] = i:totable(flags, s)
+        if flags & RECURSIVE == RECURSIVE and isset(v) then
+            if s[i] then res[n] = s[v]
+                    else res[n] = v:totable(flags, s)
             end
         else
-            res[n] = i
+            res[n] = v
         end
     end
     return res
