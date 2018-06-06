@@ -64,8 +64,7 @@ local MODFROZENERR = 'set is frozen.'
 
 --- Adds an object to a set.
 --
--- Neither checks whether the object is a member already,
--- nor whether adding would make the set a a member of itself!
+-- Doesn't check whether the object is a member already!
 --
 -- @tparam Set set The set to add to.
 -- @param obj The object to add.
@@ -77,9 +76,8 @@ local MODFROZENERR = 'set is frozen.'
 local function uncheckedadd (set, obj, n)
     local vs = set._val
     local ts = set._tab
-    n = n or #ts
     if type(obj) == 'table' then
-        n = n + 1
+        if n then n = n + 1 else n = #ts + 1 end
         ts[n] = obj
         return n
     else
