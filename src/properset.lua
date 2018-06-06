@@ -547,7 +547,9 @@ end
 
 --- Filters members of a set.
 --
--- @tparam function func A function that defines which members will be selected.
+-- @tparam function func A function that defines which members to return.
+-- @tparam[opt=0] number flags If `RECURSIVE` is set, tests members of the
+--  set that are sets, members of those sets that are sets, ..., too. 
 --
 -- @treturn Set The filtered set.
 --
@@ -1407,6 +1409,7 @@ POPOFF = 1
 --
 --  * `Set:ofrank`
 --  * `Set:map`
+--  * `Set:filter`
 --  * `Set:totable`
 --  * `Set:unpack`
 --  * `Set:sorted`
